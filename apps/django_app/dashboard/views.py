@@ -25,7 +25,17 @@ def dashboard_index(request):
     try:
         with get_db() as db:
             businesses = db.query(Business).order_by(Business.business_id).limit(100).all()
-            context["businesses"] = businesses
+            context["businesses"] = [
+                {
+                    "business_id": b.business_id,
+                    "business_name": b.business_name,
+                    "sector": b.sector,
+                    "county": b.county,
+                    "business_size": b.business_size,
+                    "monthly_revenue_estimate": b.monthly_revenue_estimate,
+                }
+                for b in businesses
+            ]
 
             profile = get_business_profile(db, business_id)
             if profile:
