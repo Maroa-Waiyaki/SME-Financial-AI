@@ -52,14 +52,11 @@ def transaction_agent(state: AgentState) -> dict:
             "messages": [AIMessage(content=message)],
         }
 
-    db = next(get_db())
-    try:
+    with get_db() as db:
         summary = _serialise(summarize_transactions(db, business_id, start, end))
         volume = get_transaction_volume(db, business_id, start, end)
         top_n = _extract_count(question)
         top = _serialise(get_top_transactions(db, business_id, start, end, n=top_n))
-    finally:
-        db.close()
 
     data: dict[str, Any] = {"summary": summary, "volume": volume, "top_transactions": top}
     system = (

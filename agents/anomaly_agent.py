@@ -38,11 +38,8 @@ def anomaly_agent(state: AgentState) -> dict:
             "messages": [AIMessage(content=message)],
         }
 
-    db = next(get_db())
-    try:
+    with get_db() as db:
         anomalies = _serialise(detect_anomalies(db, business_id, start, end))
-    finally:
-        db.close()
 
     data = {"anomalies": anomalies, "count": len(anomalies)}
     system = (

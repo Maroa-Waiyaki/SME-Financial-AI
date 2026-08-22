@@ -46,13 +46,10 @@ def financial_agent(state: AgentState) -> dict:
             "messages": [AIMessage(content=message)],
         }
 
-    db = next(get_db())
-    try:
+    with get_db() as db:
         summary = _serialise(get_financial_summary(db, business_id, start, end))
         prev_start, prev_end = _previous_period(start, end)
         comparison = _serialise(compare_periods(db, business_id, start, end, prev_start, prev_end))
-    finally:
-        db.close()
 
     data = {"summary": summary, "comparison": comparison}
     system = (
