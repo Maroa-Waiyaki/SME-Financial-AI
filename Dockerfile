@@ -23,7 +23,7 @@ COPY tools/ ./tools/
 COPY scripts/ ./scripts/
 
 RUN pip install --upgrade pip && \
-    pip install -e .
+    pip install -e ".[ml,rag]"
 
 # Create a non-root user for security
 RUN groupadd -r appuser && useradd -r -g appuser appuser && \
