@@ -1,0 +1,72 @@
+# Environment / Secrets
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Data / Models / Artifacts
+data/raw/*.csv
+data/processed/*.csv
+data/synthetic/*.csv
+data/synthetic_test/
+data/synthetic_100_6/
+mlruns/
+models/*.pkl
+models/*.joblib
+*.h5
+
+# Notebooks
+notebooks/.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# Reports
+reports/*.pdf
+reports/*.html
+
+# Logs
+logs/
+*.log
+
+# PostgreSQL / Docker volumes
+postgres_data/
+weaviate_data/
+redis_data/

@@ -1,0 +1,39 @@
+# Git / CI
+.git
+.github
+.gitignore
+
+# Python
+__pycache__
+*.py[cod]
+.venv
+venv
+*.egg-info
+.pytest_cache
+.mypy_cache
+.ruff_cache
+
+# Secrets
+.env
+.env.*
+*.pem
+*.key
+
+# Data & artifacts
+data/raw/*.csv
+data/processed/*.csv
+data/synthetic/*.csv
+mlruns/
+notebooks/.ipynb_checkpoints
+
+# Reports
+reports/*.pdf
+reports/*.html
+
+# IDE
+.vscode
+.idea
+
+# OS
+.DS_Store
+Thumbs.db

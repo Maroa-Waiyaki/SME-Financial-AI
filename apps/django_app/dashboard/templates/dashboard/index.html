@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Kenya SME FI{% endblock %}
+
+{% block content %}
+<h1>SME Dashboard</h1>
+
+<div class="card">
+    <form method="get" action="{% url 'index' %}">
+        <label>Business ID</label>
+        <input type="text" name="business_id" value="{{ business_id }}" placeholder="B000001">
+        <button type="submit">Load</button>
+    </form>
+    {% if error %}
+        <p class="error">{{ error }}</p>
+    {% endif %}
+</div>
+
+{% if profile %}
+<div class="card">
+    <h2>{{ profile.business_name }} ({{ profile.business_id }})</h2>
+    <p>{{ profile.sector }} | {{ profile.county }} | {{ profile.business_size }}</p>
+</div>
+
+<div class="card">
+    <h2>Financial Summary (2023)</h2>
+    <div class="grid">
+        <div class="metric"><h3>Revenue</h3><p>KES {{ summary.revenue }}</p></div>
+        <div class="metric"><h3>Expenses</h3><p>KES {{ summary.expenses }}</p></div>
+        <div class="metric"><h3>Profit</h3><p>KES {{ summary.profit }}</p></div>
+        <div class="metric"><h3>Net Cash Flow</h3><p>KES {{ summary.net_cash_flow }}</p></div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

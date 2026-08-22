@@ -1,0 +1,7 @@
+{
+  "n_businesses": 100,
+  "n_months": 6,
+  "start_date": "2023-01-01",
+  "seed": 42,
+  "note": "Synthetic data for Kenyan SMEs; not real businesses."
+}
