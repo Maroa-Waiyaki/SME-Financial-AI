@@ -14,13 +14,20 @@
     </form>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
 <style>
     .hint { color: #555; margin-bottom: 1rem; }
     .chat-messages { max-height: 60vh; overflow-y: auto; margin-bottom: 1rem; padding: 0.5rem; background: #f9f9f9; border-radius: 6px; }
     .message { margin: 0.5rem 0; padding: 0.75rem; border-radius: 6px; line-height: 1.5; }
     .message.user { background: #005a87; color: white; margin-left: 2rem; }
-    .message.assistant { background: #eef6fb; color: #111; margin-right: 2rem; white-space: pre-wrap; }
-    .message .meta { font-size: 0.75rem; opacity: 0.8; margin-top: 0.25rem; }
+    .message.assistant { background: #eef6fb; color: #111; margin-right: 2rem; }
+    .message.assistant h3 { margin-top: 0; color: #005a87; }
+    .message.assistant p { margin: 0.25rem 0; }
+    .message.assistant ul { margin: 0.25rem 0; padding-left: 1.5rem; }
+    .message.assistant li { margin: 0.15rem 0; }
+    .message.assistant strong { color: #005a87; }
+    .message .meta { font-size: 0.75rem; opacity: 0.8; margin-top: 0.5rem; }
     .chat-form { display: flex; gap: 0.5rem; }
     .chat-form input { flex: 1; padding: 0.75rem; border: 1px solid #ccc; border-radius: 6px; }
     .chat-form button { padding: 0.75rem 1.5rem; background: #005a87; color: white; border: none; border-radius: 6px; cursor: pointer; }
@@ -34,10 +41,17 @@
     const input = document.getElementById('chat-input');
     let history = [];
 
+    function renderMarkdown(text) {
+        if (typeof marked !== 'undefined') {
+            return marked.parse(text, { headerIds: false, mangle: false });
+        }
+        return text.replace(/\n/g, '<br>');
+    }
+
     function appendMessage(role, text, meta = '') {
         const div = document.createElement('div');
         div.className = 'message ' + role;
-        div.innerHTML = text.replace(/\n/g, '<br>');
+        div.innerHTML = role === 'assistant' ? renderMarkdown(text) : text.replace(/\n/g, '<br>');
         if (meta) {
             const metaEl = document.createElement('div');
             metaEl.className = 'meta';
