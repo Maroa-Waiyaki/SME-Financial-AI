@@ -87,7 +87,7 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: sme_celery
-    command: celery -A apps.django_app.celery worker -l info
+    command: celery -A apps.django_app.celery_app worker -l info
     env_file:
       - .env
     depends_on:
