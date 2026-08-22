@@ -9,6 +9,7 @@ from agents.anomaly_agent import anomaly_agent
 from agents.credit_agent import credit_agent
 from agents.financial_agent import financial_agent
 from agents.forecasting_agent import forecasting_agent
+from agents.invoice_agent import invoice_agent
 from agents.rag_agent import rag_agent
 from agents.state import AgentState
 from agents.transaction_agent import transaction_agent
@@ -20,6 +21,7 @@ INTENTS = [
     "CREDIT_RISK",
     "FORECAST",
     "ANOMALY_DETECTION",
+    "INVOICE",
     "DOCUMENT_QUERY",
     "REPORT_GENERATION",
     "GENERAL",
@@ -43,8 +45,8 @@ def _build_classifier():
             ...,
             description=(
                 "One of FINANCIAL_ANALYSIS, TRANSACTION_ANALYSIS, CREDIT_RISK, "
-                "FORECAST, ANOMALY_DETECTION, DOCUMENT_QUERY, REPORT_GENERATION, "
-                "GENERAL, or CLARIFICATION."
+                "FORECAST, ANOMALY_DETECTION, INVOICE, DOCUMENT_QUERY, "
+                "REPORT_GENERATION, GENERAL, or CLARIFICATION."
             ),
         )
         business_id: str | None = Field(None, description="Business ID if known; e.g. B000001")
@@ -59,7 +61,8 @@ def _build_classifier():
 
 
 def _clean_text(text: str) -> str:
-    # Remove trailing spaces per line and collapse more than two newlines
+    # Normalize non-ASCII spaces and hyphens, then clean whitespace
+    text = text.replace("\u2011", "-").replace("\u202f", " ").replace("\u00a0", " ")
     text = re.sub(r" +\n", "\n", text)
     text = re.sub(r" +$", "", text, flags=re.MULTILINE)
     text = re.sub(r"\n{3,}", "\n\n", text)
@@ -131,6 +134,8 @@ def route(state: AgentState) -> str:
         return "transaction"
     if intent == "ANOMALY_DETECTION":
         return "anomaly"
+    if intent == "INVOICE":
+        return "invoice"
     if intent == "CREDIT_RISK":
         return "credit"
     if intent == "FORECAST":
@@ -172,6 +177,7 @@ def build_graph():
     builder.add_node("anomaly", anomaly_agent)
     builder.add_node("credit", credit_agent)
     builder.add_node("forecast", forecasting_agent)
+    builder.add_node("invoice", invoice_agent)
     builder.add_node("rag", rag_agent)
     builder.add_node("general", general_node)
 
@@ -183,6 +189,7 @@ def build_graph():
             "financial": "financial",
             "transaction": "transaction",
             "anomaly": "anomaly",
+            "invoice": "invoice",
             "credit": "credit",
             "forecast": "forecast",
             "rag": "rag",
@@ -192,6 +199,7 @@ def build_graph():
     builder.add_edge("financial", END)
     builder.add_edge("transaction", END)
     builder.add_edge("anomaly", END)
+    builder.add_edge("invoice", END)
     builder.add_edge("credit", END)
     builder.add_edge("forecast", END)
     builder.add_edge("rag", END)
