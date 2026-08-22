@@ -18,20 +18,17 @@ class DashboardLogoutView(LogoutView):
 
 @login_required
 def dashboard_index(request):
-    business_id = request.GET.get("business_id") or request.user.username
+    business_id = request.GET.get("business_id") or "B000001"
     context: dict = {"business_id": business_id}
 
     try:
-        db = next(get_db())
-        try:
+        with get_db() as db:
             profile = get_business_profile(db, business_id)
             if profile:
                 context["profile"] = profile
                 context["summary"] = get_financial_summary(
                     db, business_id, "2023-01-01", "2023-12-31"
                 )
-        finally:
-            db.close()
     except Exception as exc:
         context["error"] = f"Could not load data: {exc}"
 
