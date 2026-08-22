@@ -58,6 +58,14 @@ def _build_classifier():
     return _ClassifierOutput
 
 
+def _clean_text(text: str) -> str:
+    # Remove trailing spaces per line and collapse more than two newlines
+    text = re.sub(r" +\n", "\n", text)
+    text = re.sub(r" +$", "", text, flags=re.MULTILINE)
+    text = re.sub(r"\n{3,}", "\n\n", text)
+    return text.strip()
+
+
 def _extract_business_id(text: str) -> str | None:
     m = re.search(r"(B\d{6})\b", text)
     return m.group(1) if m else None
@@ -203,4 +211,6 @@ def chat(question: str, history: list[tuple[str, str]] | None = None) -> dict:
             elif role == "assistant":
                 messages.append(AIMessage(content=content))
     messages.append(HumanMessage(content=question))
-    return graph.invoke({"messages": messages})
+    result = graph.invoke({"messages": messages})
+    result["final_response"] = _clean_text(result.get("final_response", ""))
+    return result
