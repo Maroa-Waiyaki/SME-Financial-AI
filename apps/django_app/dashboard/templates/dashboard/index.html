@@ -29,7 +29,41 @@
         <div class="metric"><h3>Expenses</h3><p>KES {{ summary.expenses }}</p></div>
         <div class="metric"><h3>Profit</h3><p>KES {{ summary.profit }}</p></div>
         <div class="metric"><h3>Net Cash Flow</h3><p>KES {{ summary.net_cash_flow }}</p></div>
+        <div class="metric"><h3>Outstanding Receivables</h3><p>KES {{ summary.outstanding_receivables }}</p></div>
+        <div class="metric"><h3>Outstanding Loans</h3><p>KES {{ summary.outstanding_loans }}</p></div>
     </div>
 </div>
 {% endif %}
+
+<div class="card">
+    <h2>All Businesses</h2>
+    {% if businesses %}
+    <table>
+        <thead>
+            <tr>
+                <th>Business ID</th>
+                <th>Name</th>
+                <th>Sector</th>
+                <th>County</th>
+                <th>Size</th>
+                <th>Monthly Revenue</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for b in businesses %}
+            <tr>
+                <td><a href="{% url 'index' %}?business_id={{ b.business_id }}">{{ b.business_id }}</a></td>
+                <td>{{ b.business_name }}</td>
+                <td>{{ b.sector }}</td>
+                <td>{{ b.county }}</td>
+                <td>{{ b.business_size }}</td>
+                <td>KES {{ b.monthly_revenue_estimate }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+        <p>No businesses found.</p>
+    {% endif %}
+</div>
 {% endblock %}

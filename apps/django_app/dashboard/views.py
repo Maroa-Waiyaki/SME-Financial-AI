@@ -5,6 +5,7 @@ from django.contrib.auth.views import LoginView, LogoutView
 from django.shortcuts import render
 
 from src.database.engine import get_db
+from src.database.models import Business
 from tools.financial import get_business_profile, get_financial_summary
 
 
@@ -23,6 +24,9 @@ def dashboard_index(request):
 
     try:
         with get_db() as db:
+            businesses = db.query(Business).order_by(Business.business_id).limit(100).all()
+            context["businesses"] = businesses
+
             profile = get_business_profile(db, business_id)
             if profile:
                 context["profile"] = profile
