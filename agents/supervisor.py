@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import re
+
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 from langgraph.graph import END, START, StateGraph
 
@@ -56,6 +58,20 @@ def _build_classifier():
     return _ClassifierOutput
 
 
+def _extract_business_id(text: str) -> str | None:
+    m = re.search(r"(B\d{6})\b", text)
+    return m.group(1) if m else None
+
+
+def _extract_dates(text: str) -> tuple[str | None, str | None]:
+    dates = re.findall(r"\d{4}-\d{2}-\d{2}", text)
+    if len(dates) >= 2:
+        return dates[0], dates[1]
+    if len(dates) == 1:
+        return dates[0], "2023-12-31"
+    return None, None
+
+
 def classify(state: AgentState) -> dict:
     system = (
         "You are the supervisor for a Kenyan SME financial intelligence platform. "
@@ -69,11 +85,31 @@ def classify(state: AgentState) -> dict:
     last_message = state["messages"][-1]
     out = llm.invoke([SystemMessage(content=system), last_message])
 
+    question = last_message.content
+    business_id = out.business_id or _extract_business_id(question)
+    start_date, end_date = _extract_dates(question)
+    if not start_date:
+        start_date = out.start_date
+    if not end_date:
+        end_date = out.end_date
+
+    # Default to the full 2023 range if the specialist still needs dates
+    if business_id and not start_date:
+        start_date = "2023-01-01"
+    if business_id and not end_date:
+        end_date = "2023-12-31"
+
+    if not business_id:
+        return {
+            "current_intent": "CLARIFICATION",
+            "final_response": "Please provide a business ID (for example B000001) so I can look up the data.",
+        }
+
     return {
-        "current_intent": out.intent,
-        "business_id": out.business_id,
-        "start_date": out.start_date,
-        "end_date": out.end_date,
+        "current_intent": out.intent if out.intent != "CLARIFICATION" else "FINANCIAL_ANALYSIS",
+        "business_id": business_id,
+        "start_date": start_date,
+        "end_date": end_date,
         "final_response": out.clarification if out.intent == "CLARIFICATION" else "",
     }
 
