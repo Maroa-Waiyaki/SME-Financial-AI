@@ -52,6 +52,12 @@ services:
     command: uvicorn apps.api.main:app --host 0.0.0.0 --port 8000 --reload
     env_file:
       - .env
+    environment:
+      DATABASE_URL: postgresql://sme_user:sme_pass@postgres:5432/sme_financial_intelligence
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/1
+      CELERY_RESULT_BACKEND: redis://redis:6379/2
+      WEAVIATE_URL: http://weaviate:8080
     ports:
       - "8000:8000"
     depends_on:
@@ -72,6 +78,12 @@ services:
     command: python apps/django_app/manage.py runserver 0.0.0.0:8001
     env_file:
       - .env
+    environment:
+      DB_NAME: sme_financial_intelligence
+      DB_USER: sme_user
+      DB_PASSWORD: sme_pass
+      DB_HOST: postgres
+      DB_PORT: 5432
     ports:
       - "8001:8001"
     depends_on:
@@ -90,6 +102,14 @@ services:
     command: celery -A apps.django_app.celery_app worker -l info
     env_file:
       - .env
+    environment:
+      DB_NAME: sme_financial_intelligence
+      DB_USER: sme_user
+      DB_PASSWORD: sme_pass
+      DB_HOST: postgres
+      DB_PORT: 5432
+      CELERY_BROKER_URL: redis://redis:6379/1
+      CELERY_RESULT_BACKEND: redis://redis:6379/2
     depends_on:
       - redis
       - postgres
