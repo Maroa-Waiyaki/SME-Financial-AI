@@ -44,27 +44,6 @@ services:
       timeout: 10s
       retries: 5
 
-  mlflow:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: sme_mlflow
-    command: >
-      mlflow server
-      --backend-store-uri sqlite:///mlruns/mlflow.db
-      --default-artifact-root /app/mlruns
-      --host 0.0.0.0
-      --port 5000
-    ports:
-      - "5000:5000"
-    volumes:
-      - mlruns:/app/mlruns
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
-      interval: 15s
-      timeout: 10s
-      retries: 5
-
   fastapi:
     build:
       context: .
