@@ -12,7 +12,12 @@ from agents.state import AgentState
 from apps.agents.llm import get_llm
 from src.config.settings import get_settings
 from src.features.credit_features import get_business_features, load_data
-from src.ml.credit_risk import load_credit_risk_model
+
+
+def _load_credit_risk_model():
+    from src.ml.credit_risk import load_credit_risk_model
+
+    return load_credit_risk_model()
 
 logger = logging.getLogger(__name__)
 
@@ -65,7 +70,7 @@ def _heuristic_risk(features: dict[str, Any]) -> dict[str, Any]:
 
 
 def _model_risk(features: dict[str, Any]) -> dict[str, Any]:
-    model = load_credit_risk_model()
+    model = _load_credit_risk_model()
     with open(Path("models/credit_risk_features.json")) as f:
         feature_cols = json.load(f)
     row = {c: float(features.get(c, 0.0)) for c in feature_cols}
