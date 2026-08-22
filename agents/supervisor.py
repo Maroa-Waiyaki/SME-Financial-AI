@@ -86,12 +86,13 @@ def classify(state: AgentState) -> dict:
     out = llm.invoke([SystemMessage(content=system), last_message])
 
     question = last_message.content
-    business_id = out.business_id or _extract_business_id(question)
+    conversation = " ".join(m.content for m in state["messages"])
+    business_id = out.business_id or _extract_business_id(question) or _extract_business_id(conversation)
     start_date, end_date = _extract_dates(question)
     if not start_date:
-        start_date = out.start_date
+        start_date = out.start_date or _extract_dates(conversation)[0]
     if not end_date:
-        end_date = out.end_date
+        end_date = out.end_date or _extract_dates(conversation)[1]
 
     # Default to the full 2023 range if the specialist still needs dates
     if business_id and not start_date:
@@ -129,7 +130,7 @@ def route(state: AgentState) -> str:
     if intent == "DOCUMENT_QUERY":
         return "rag"
     if intent == "CLARIFICATION":
-        return END
+        return "general"
     return "general"
 
 
