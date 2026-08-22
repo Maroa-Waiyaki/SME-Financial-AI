@@ -52,15 +52,24 @@ def financial_agent(state: AgentState) -> dict:
         comparison = _serialise(compare_periods(db, business_id, start, end, prev_start, prev_end))
 
     data = {"summary": summary, "comparison": comparison}
+    period = f"{start} to {end}"
     system = (
-        "You are a Kenyan SME financial analyst. Answer the user's question using the "
-        "provided data only. Use KES for currency. Keep numbers precise. "
-        "Clearly separate facts from recommendations. If you do not have enough data, say so."
+        "You are a professional Kenyan SME financial analyst. Use only the provided data. "
+        "Respond in clear, plain English using normal ASCII punctuation (standard hyphens and spaces). "
+        "Use KES with two decimal places. Clearly label the period. "
+        "Keep facts and recommendations in separate sections. If no recommendation is warranted, omit it."
     )
     prompt = (
-        f"User question: {question}\n\n"
+        f"User question: {question}\n"
+        f"Period: {period}\n\n"
         f"Data: {data}\n\n"
-        "Provide a concise answer with the key numbers and, if relevant, one brief recommendation."
+        "Format:\n"
+        f"**Facts ({period})**\n"
+        "- Revenue: KES ...\n"
+        "- Expenses: KES ...\n"
+        "- Profit: KES ... (profit margin ...%)\n"
+        "- Other relevant metrics\n\n"
+        "**Recommendation** (one short, practical suggestion for a Kenyan SME, only if relevant)"
     )
 
     llm = get_llm()

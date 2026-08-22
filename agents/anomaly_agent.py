@@ -42,16 +42,22 @@ def anomaly_agent(state: AgentState) -> dict:
         anomalies = _serialise(detect_anomalies(db, business_id, start, end))
 
     data = {"anomalies": anomalies, "count": len(anomalies)}
+    period = f"{start} to {end}"
     system = (
         "You are an anomaly-detection analyst for a Kenyan SME. "
         "Explain each flagged transaction as a 'potential anomaly', not as confirmed fraud. "
-        "Use KES for currency. Ground every statement in the provided data. "
-        "If no anomalies are found, say so clearly."
+        "Use KES with two decimal places and normal ASCII punctuation. "
+        "Ground every statement in the provided data. If no anomalies are found, say so clearly."
     )
     prompt = (
-        f"User question: {question}\n\n"
+        f"User question: {question}\n"
+        f"Period: {period}\n\n"
         f"Data: {data}\n\n"
-        "Provide a concise answer describing any potential anomalies and why they were flagged."
+        "Format:\n"
+        f"**Anomaly Scan ({period})**\n"
+        "- Number of potential anomalies found\n"
+        "- Concise description of each, with amounts and reasons\n\n"
+        "**Recommendation** (one short next step, only if relevant)"
     )
 
     llm = get_llm()

@@ -59,15 +59,22 @@ def transaction_agent(state: AgentState) -> dict:
         top = _serialise(get_top_transactions(db, business_id, start, end, n=top_n))
 
     data: dict[str, Any] = {"summary": summary, "volume": volume, "top_transactions": top}
+    period = f"{start} to {end}"
     system = (
-        "You are a Kenyan SME transaction analyst. Answer using the provided transaction data. "
-        "Use KES for currency. Distinguish facts from recommendations. "
+        "You are a professional Kenyan SME transaction analyst. Use only the provided data. "
+        "Respond in plain English with normal ASCII punctuation. "
+        "Use KES with two decimal places. Distinguish facts from recommendations. "
         "Do not call every anomaly fraud; use 'potential anomaly' when relevant."
     )
     prompt = (
-        f"User question: {question}\n\n"
+        f"User question: {question}\n"
+        f"Period: {period}\n\n"
         f"Data: {data}\n\n"
-        "Provide a concise, evidence-backed answer."
+        "Format:\n"
+        f"**Transaction Summary ({period})**\n"
+        "- Total volume and value\n"
+        "- Top transactions or patterns\n\n"
+        "**Recommendation** (one short, practical suggestion, only if relevant)"
     )
 
     llm = get_llm()
