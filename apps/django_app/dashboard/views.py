@@ -95,6 +95,11 @@ class DashboardLogoutView(LogoutView):
     next_page = "/login/"
 
 
+def landing_page(request):
+    """Public portfolio landing page highlighting samstatsai and the platform."""
+    return render(request, "dashboard/landing.html")
+
+
 @login_required
 def dashboard_index(request):
     business_id = request.GET.get("business_id") or "B000001"
@@ -402,7 +407,7 @@ def transactions_page(request):
                 ]
                 severity_rank = {"high": 0, "medium": 1, "low": 2}
                 anomalies.sort(
-                    key=lambda a: (severity_rank.get(a["severity"], 99), -a["amount"])
+                    key=lambda a: (severity_rank.get(a["severity"], 99), -float(_f(a["amount"])))
                 )
                 context["anomalies"] = anomalies
                 context["anomaly_ids"] = [a["transaction_id"] for a in anomalies]

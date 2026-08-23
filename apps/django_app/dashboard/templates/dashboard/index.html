@@ -1,69 +1,129 @@
 {% extends "base.html" %}
 
-{% block title %}Dashboard - Kenya SME FI{% endblock %}
+{% block title %}SME Executive Dashboard - Kenya SME FI{% endblock %}
 
 {% block content %}
-<h1>SME Dashboard</h1>
-
-<div class="card">
-    <form method="get" action="{% url 'index' %}">
-        <label>Business ID</label>
-        <input type="text" name="business_id" value="{{ business_id }}" placeholder="B000001">
-        <button type="submit">Load</button>
-    </form>
-    {% if error %}
-        <p class="error">{{ error }}</p>
-    {% endif %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+    <div>
+        <h1 style="margin: 0; font-size: 1.8rem; font-weight: 800; color: #0f172a;">SME Financial Intelligence Hub</h1>
+        <p style="margin: 0.3rem 0 0; color: #64748b; font-size: 0.95rem;">Real-time deterministic accounting, credit risk assessment, and predictive intelligence</p>
+    </div>
+    <div>
+        <form method="get" action="{% url 'index' %}" style="display: flex; gap: 0.5rem; align-items: center;">
+            <label for="business_id" style="font-weight: 600; font-size: 0.9rem; color: #334155;">Active SME:</label>
+            <input type="text" name="business_id" value="{{ business_id }}" placeholder="B000001" style="width: 120px; font-weight: 600; text-transform: uppercase;">
+            <button type="submit"><i class="fa-solid fa-arrows-rotate"></i> Load</button>
+        </form>
+    </div>
 </div>
+
+{% if error %}
+    <div class="error"><i class="fa-solid fa-triangle-exclamation"></i> {{ error }}</div>
+{% endif %}
 
 {% if profile %}
-<div class="card">
-    <h2>{{ profile.business_name }} ({{ profile.business_id }})</h2>
-    <p>{{ profile.sector }} | {{ profile.county }} | {{ profile.business_size }}</p>
+<!-- SME Profile Banner -->
+<div class="card" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: white; border: none; box-shadow: var(--shadow-lg);">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+        <div>
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <h2 style="margin: 0; color: white; font-size: 1.6rem;">{{ profile.business_name }}</h2>
+                <span style="background: #0284c7; color: white; padding: 0.25rem 0.65rem; border-radius: 20px; font-size: 0.8rem; font-weight: 700;">{{ profile.business_id }}</span>
+            </div>
+            <p style="margin: 0.6rem 0 0; color: #94a3b8; font-size: 0.92rem; display: flex; gap: 1.25rem; flex-wrap: wrap;">
+                <span><i class="fa-solid fa-briefcase" style="color: #38bdf8;"></i> {{ profile.sector }}</span>
+                <span><i class="fa-solid fa-location-dot" style="color: #38bdf8;"></i> {{ profile.county }} County</span>
+                <span><i class="fa-solid fa-users" style="color: #38bdf8;"></i> {{ profile.number_of_employees }} Employees</span>
+                <span><i class="fa-solid fa-scale-balanced" style="color: #38bdf8;"></i> <span style="text-transform: capitalize;">{{ profile.business_size }}</span> Scale</span>
+            </p>
+        </div>
+        <div style="display: flex; gap: 0.6rem;">
+            <a href="{% url 'reports' %}?business_id={{ profile.business_id }}" class="btn" style="background: #0284c7;"><i class="fa-solid fa-file-invoice-dollar"></i> View P&L</a>
+            <a href="{% url 'chat' %}" class="btn" style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25);"><i class="fa-solid fa-robot"></i> Ask AI</a>
+        </div>
+    </div>
 </div>
 
+<!-- 3-Year Historical Snapshot -->
 <div class="card">
-    <h2>Financial Summary (2021 - 2023)</h2>
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h2 style="margin: 0;"><i class="fa-solid fa-chart-simple" style="color: #0284c7;"></i> Multi-Year Performance Overview (2021 – 2023)</h2>
+        <a href="{% url 'analytics' %}?business_id={{ profile.business_id }}" style="font-size: 0.88rem; color: #0284c7; text-decoration: none; font-weight: 600;">View Full Trend Charts <i class="fa-solid fa-arrow-right"></i></a>
+    </div>
     <div class="grid">
-        <div class="metric"><h3>Revenue</h3><p>KES {{ summary.revenue }}</p></div>
-        <div class="metric"><h3>Expenses</h3><p>KES {{ summary.expenses }}</p></div>
-        <div class="metric"><h3>Profit</h3><p>KES {{ summary.profit }}</p></div>
-        <div class="metric"><h3>Net Cash Flow</h3><p>KES {{ summary.net_cash_flow }}</p></div>
-        <div class="metric"><h3>Outstanding Receivables</h3><p>KES {{ summary.outstanding_receivables }}</p></div>
-        <div class="metric"><h3>Outstanding Loans</h3><p>KES {{ summary.outstanding_loans }}</p></div>
+        <div class="metric">
+            <h3>Total Sales Turnover</h3>
+            <p>KES {{ summary.revenue }}</p>
+        </div>
+        <div class="metric" style="background: linear-gradient(145deg, #fef2f2 0%, #fee2e2 100%); border-color: #fecaca;">
+            <h3 style="color: #b91c1c;">Total Expenses</h3>
+            <p style="color: #7f1d1d;">KES {{ summary.expenses }}</p>
+        </div>
+        <div class="metric" style="background: linear-gradient(145deg, #ecfdf5 0%, #d1fae5 100%); border-color: #a7f3d0;">
+            <h3 style="color: #047857;">Net Profit Generated</h3>
+            <p style="color: #064e3b;">KES {{ summary.profit }}</p>
+        </div>
+        <div class="metric">
+            <h3>Cumulative Cash Flow</h3>
+            <p>KES {{ summary.net_cash_flow }}</p>
+        </div>
+        <div class="metric" style="background: linear-gradient(145deg, #fffbeb 0%, #fef3c7 100%); border-color: #fde68a;">
+            <h3 style="color: #b45309;">Outstanding Invoices</h3>
+            <p style="color: #78350f;">KES {{ summary.outstanding_receivables }}</p>
+        </div>
+        <div class="metric">
+            <h3>Debt Liabilities</h3>
+            <p>KES {{ summary.outstanding_loans }}</p>
+        </div>
     </div>
 </div>
 {% endif %}
 
+<!-- Full Enterprise Portfolio Directory -->
 <div class="card">
-    <h2>All Businesses</h2>
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h2 style="margin: 0;"><i class="fa-solid fa-building-columns" style="color: #0284c7;"></i> Kenyan SME Portfolio Directory (100 Enterprises)</h2>
+        <span style="font-size: 0.85rem; color: #64748b; font-weight: 600;">Click any ID to switch active business</span>
+    </div>
     {% if businesses %}
-    <table>
-        <thead>
-            <tr>
-                <th>Business ID</th>
-                <th>Name</th>
-                <th>Sector</th>
-                <th>County</th>
-                <th>Size</th>
-                <th>Monthly Revenue</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for b in businesses %}
-            <tr>
-                <td><a href="{% url 'index' %}?business_id={{ b.business_id }}">{{ b.business_id }}</a></td>
-                <td>{{ b.business_name }}</td>
-                <td>{{ b.sector }}</td>
-                <td>{{ b.county }}</td>
-                <td>{{ b.business_size }}</td>
-                <td>KES {{ b.monthly_revenue_estimate }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <div style="max-height: 480px; overflow-y: auto; margin-top: 1rem; border: 1px solid #e2e8f0; border-radius: 8px;">
+        <table style="margin-top: 0;">
+            <thead>
+                <tr style="position: sticky; top: 0; background: #f8fafc; z-index: 10;">
+                    <th>SME Identifier</th>
+                    <th>Enterprise Name</th>
+                    <th>Sector</th>
+                    <th>County Location</th>
+                    <th>Business Scale</th>
+                    <th style="text-align: right;">Monthly Baseline</th>
+                    <th style="text-align: center;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for b in businesses %}
+                <tr {% if b.business_id == business_id %}style="background: #f0f9ff;"{% endif %}>
+                    <td>
+                        <a href="{% url 'index' %}?business_id={{ b.business_id }}" style="color: #0284c7; font-weight: 700; text-decoration: none; font-family: monospace; font-size: 0.95rem;">
+                            {{ b.business_id }}
+                        </a>
+                    </td>
+                    <td style="font-weight: 600;">{{ b.business_name }}</td>
+                    <td><span style="background: #f1f5f9; padding: 0.2rem 0.5rem; border-radius: 6px; font-size: 0.82rem; font-weight: 600;">{{ b.sector }}</span></td>
+                    <td>{{ b.county }}</td>
+                    <td><span style="text-transform: capitalize; font-weight: 600; color: #475569;">{{ b.business_size }}</span></td>
+                    <td style="text-align: right; font-weight: 600; color: #0f172a;">KES {{ b.monthly_revenue_estimate }}</td>
+                    <td style="text-align: center;">
+                        <a href="{% url 'analytics' %}?business_id={{ b.business_id }}" style="color: #0284c7; text-decoration: none; font-size: 0.85rem; font-weight: 600;">
+                            <i class="fa-solid fa-chart-line"></i> Analyze
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
     {% else %}
-        <p>No businesses found.</p>
+        <p>No businesses found in database.</p>
     {% endif %}
 </div>
 {% endblock %}

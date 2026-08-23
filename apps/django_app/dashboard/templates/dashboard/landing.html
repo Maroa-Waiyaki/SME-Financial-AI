@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>samstatsai | AI Systems Engineer & Data Scientist</title>
+    <!-- Modern Font & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #0284c7;
+            --primary-glow: #38bdf8;
+            --secondary: #0f172a;
+            --card-bg: #1e293b;
+            --card-border: #334155;
+            --accent: #10b981;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #090d16;
+            color: var(--text-main);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Glassmorphism Header */
+        .header-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.25rem 3rem;
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 0.85rem;
+            text-decoration: none;
+            color: white;
+        }
+
+        /* Custom Logo Design: Neural Matrix Hexagon */
+        .custom-logo {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, #0284c7 0%, #38bdf8 50%, #10b981 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 20px rgba(56, 189, 248, 0.5);
+            position: relative;
+            transform: rotate(-3deg);
+            transition: transform 0.3s ease;
+        }
+
+        .custom-logo:hover {
+            transform: rotate(0deg) scale(1.05);
+        }
+
+        .custom-logo-inner {
+            width: 36px;
+            height: 36px;
+            background: #0f172a;
+            border-radius: 9px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #38bdf8;
+            font-size: 1.2rem;
+            font-weight: 900;
+        }
+
+        .brand-text {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .brand-title {
+            font-size: 1.25rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            background: linear-gradient(to right, #ffffff, #93c5fd);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .brand-subtitle {
+            font-size: 0.72rem;
+            color: #38bdf8;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .nav-btn {
+            background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+            color: white;
+            padding: 0.65rem 1.4rem;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: 0 0 15px rgba(2, 132, 199, 0.4);
+            transition: all 0.2s ease;
+        }
+
+        .nav-btn:hover {
+            box-shadow: 0 0 25px rgba(56, 189, 248, 0.6);
+            transform: translateY(-2px);
+        }
+
+        /* Hero Section */
+        .hero {
+            max-width: 1200px;
+            margin: 4rem auto 3rem;
+            padding: 0 2rem;
+            display: grid;
+            grid-template-columns: 1.2fr 0.8fr;
+            gap: 3rem;
+            align-items: center;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(56, 189, 248, 0.1);
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            padding: 0.4rem 1rem;
+            border-radius: 30px;
+            font-size: 0.85rem;
+            color: #38bdf8;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+        }
+
+        .hero h1 {
+            font-size: 3.2rem;
+            font-weight: 900;
+            line-height: 1.15;
+            margin: 0 0 1.25rem;
+            letter-spacing: -0.03em;
+        }
+
+        .hero h1 span {
+            background: linear-gradient(135deg, #38bdf8 0%, #818cf8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-bio {
+            font-size: 1.15rem;
+            color: var(--text-muted);
+            margin-bottom: 2rem;
+            line-height: 1.7;
+        }
+
+        .hero-cta {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: white;
+            padding: 0.75rem 1.6rem;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        /* Profile Card */
+        .profile-card {
+            background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 2.5rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .profile-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, rgba(56, 189, 248, 0.2) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+
+        .profile-avatar {
+            width: 72px;
+            height: 72px;
+            background: linear-gradient(135deg, #38bdf8 0%, #0284c7 100%);
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: white;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 0 20px rgba(56, 189, 248, 0.4);
+        }
+
+        .profile-card h3 {
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 800;
+        }
+
+        .profile-card p.title {
+            color: #38bdf8;
+            font-weight: 700;
+            font-size: 0.95rem;
+            margin: 0.25rem 0 1.25rem;
+        }
+
+        .profile-creds {
+            border-top: 1px solid var(--card-border);
+            padding-top: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            font-size: 0.92rem;
+            color: #cbd5e1;
+        }
+
+        .profile-creds div {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        /* Section Layouts */
+        .section-container {
+            max-width: 1200px;
+            margin: 5rem auto;
+            padding: 0 2rem;
+        }
+
+        .section-header {
+            text-align: center;
+            max-width: 700px;
+            margin: 0 auto 3.5rem;
+        }
+
+        .section-header h2 {
+            font-size: 2.4rem;
+            font-weight: 800;
+            margin: 0 0 0.75rem;
+            letter-spacing: -0.02em;
+        }
+
+        .section-header p {
+            color: var(--text-muted);
+            font-size: 1.05rem;
+            margin: 0;
+        }
+
+        /* Feature Cards Grid */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 1.75rem;
+        }
+
+        .feature-box {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 2rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .feature-box:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+            border-color: #0284c7;
+        }
+
+        .feature-icon {
+            width: 48px;
+            height: 48px;
+            background: rgba(56, 189, 248, 0.12);
+            color: #38bdf8;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .feature-box h4 {
+            margin: 0 0 0.6rem;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: white;
+        }
+
+        .feature-box p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            margin: 0;
+            line-height: 1.6;
+        }
+
+        /* Tech Stack Matrix */
+        .tech-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.25rem;
+        }
+
+        .tech-item {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--card-border);
+            padding: 1.25rem 1.5rem;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .tech-item i {
+            font-size: 1.8rem;
+            color: #38bdf8;
+        }
+
+        .tech-item div h5 {
+            margin: 0;
+            font-size: 1rem;
+            font-weight: 700;
+            color: white;
+        }
+
+        .tech-item div p {
+            margin: 0.2rem 0 0;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        /* CTA Banner */
+        .cta-banner {
+            background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+            border-radius: 24px;
+            padding: 4rem 3rem;
+            text-align: center;
+            margin: 6rem auto 4rem;
+            max-width: 1200px;
+            box-shadow: 0 20px 40px rgba(2, 132, 199, 0.3);
+        }
+
+        .cta-banner h2 {
+            font-size: 2.5rem;
+            font-weight: 900;
+            margin: 0 0 1rem;
+            color: white;
+        }
+
+        .cta-banner p {
+            font-size: 1.15rem;
+            color: #e0f2fe;
+            max-width: 700px;
+            margin: 0 auto 2rem;
+        }
+
+        .btn-launch {
+            background: #ffffff;
+            color: #0369a1;
+            font-size: 1.1rem;
+            font-weight: 800;
+            padding: 1rem 2.5rem;
+            border-radius: 30px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            transition: transform 0.2s;
+        }
+
+        .btn-launch:hover {
+            transform: scale(1.05);
+        }
+
+        /* Footer */
+        .landing-footer {
+            border-top: 1px solid var(--card-border);
+            padding: 2.5rem 2rem;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navigation -->
+    <header class="header-nav">
+        <a href="{% url 'landing' %}" class="logo-container">
+            <!-- Custom Geometric AI Logo -->
+            <div class="custom-logo">
+                <div class="custom-logo-inner">
+                    <i class="fa-solid fa-brain"></i>
+                </div>
+            </div>
+            <div class="brand-text">
+                <span class="brand-title">samstatsai</span>
+                <span class="brand-subtitle">AI Systems Engineering</span>
+            </div>
+        </a>
+        <div class="nav-actions">
+            <a href="#about" style="color: #cbd5e1; text-decoration: none; font-weight: 600; font-size: 0.9rem;">About Me</a>
+            <a href="#project" style="color: #cbd5e1; text-decoration: none; font-weight: 600; font-size: 0.9rem;">The Platform</a>
+            <a href="#tech" style="color: #cbd5e1; text-decoration: none; font-weight: 600; font-size: 0.9rem;">Tech Stack</a>
+            <a href="{% url 'index' %}" class="nav-btn"><i class="fa-solid fa-chart-pie"></i> Launch Platform</a>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero" id="about">
+        <div>
+            <div class="hero-badge">
+                <i class="fa-solid fa-graduation-cap"></i> MSc. Data Science — Strathmore University
+            </div>
+            <h1>Architecting <span>Production AI & Financial Systems</span></h1>
+            <p class="hero-bio">
+                Hi, I am <strong>samstatsai</strong> — an AI Systems Engineer & Data Scientist specialized in architecting real-world, enterprise-grade AI applications. Moving beyond notebooks and generic chatbots, I build deterministic, explainable, and multi-agent AI ecosystems that solve critical economic problems.
+            </p>
+            <div class="hero-cta">
+                <a href="{% url 'index' %}" class="nav-btn" style="padding: 0.85rem 1.8rem; font-size: 1rem;"><i class="fa-solid fa-arrow-right"></i> Explore Live Demo</a>
+                <a href="#project" class="btn-secondary"><i class="fa-solid fa-layer-group"></i> Architecture Details</a>
+            </div>
+        </div>
+
+        <div class="profile-card">
+            <div class="profile-avatar">
+                <i class="fa-solid fa-code-merge"></i>
+            </div>
+            <h3>samstatsai</h3>
+            <p class="title">AI Systems Engineer & Fintech Data Scientist</p>
+            <div class="profile-creds">
+                <div><i class="fa-solid fa-university" style="color: #38bdf8;"></i> <strong>MSc. Data Science</strong> — Strathmore University</div>
+                <div><i class="fa-solid fa-network-wired" style="color: #10b981;"></i> <strong>Specialization:</strong> Agentic AI & Explainable ML Systems</div>
+                <div><i class="fa-solid fa-map-pin" style="color: #f59e0b;"></i> <strong>Market Focus:</strong> Kenyan SME Credit Risk & Fintech Intelligence</div>
+                <div><i class="fa-solid fa-circle-check" style="color: #38bdf8;"></i> <strong>Status:</strong> Production Portfolio Ready</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Project Purpose Section -->
+    <section class="section-container" id="project">
+        <div class="section-header">
+            <h2>The Kenya SME Intelligence Platform</h2>
+            <p>A flagship, production-oriented portfolio system demonstrating how modern Agentic AI, deterministic financial calculations, and explainable ML empower small and medium enterprises in Kenya.</p>
+        </div>
+
+        <div class="features-grid">
+            <div class="feature-box">
+                <div class="feature-icon"><i class="fa-solid fa-diagram-project"></i></div>
+                <h4>LangGraph Multi-Agent Orchestration</h4>
+                <p>9 specialized AI agents (Financial, Credit Risk, Transaction, Anomaly, Invoice, Reporting, and RAG) orchestrated by a supervisor state machine to deliver grounded, evidence-backed answers.</p>
+            </div>
+
+            <div class="feature-box">
+                <div class="feature-icon"><i class="fa-solid fa-calculator"></i></div>
+                <h4>Deterministic Mathematical Grounding</h4>
+                <p>Zero LLM arithmetic hallucination. Ratios, P&L statements, balance sheets, and turnover metrics are calculated directly via Python/PostgreSQL engines before being summarized by the AI.</p>
+            </div>
+
+            <div class="feature-box">
+                <div class="feature-icon"><i class="fa-solid fa-scale-balanced"></i></div>
+                <h4>Explainable Credit Risk Scorecard</h4>
+                <p>L2-regularised logistic regression scorecard trained on 36-month SME profiles (AUC 1.000 / 0.930), returning exact additive log-odds reason codes for transparent credit committee decisions.</p>
+            </div>
+
+            <div class="feature-box">
+                <div class="feature-icon"><i class="fa-solid fa-folder-tree"></i></div>
+                <h4>Multi-Format RAG Knowledge Engine</h4>
+                <p>Ingests and chunks PDFs, Word documents, Excel spreadsheets, PowerPoint decks, and policy markdowns, enabling business owners to query contractual terms and lending policies in natural language.</p>
+            </div>
+
+            <div class="feature-box">
+                <div class="feature-icon"><i class="fa-solid fa-shield-virus"></i></div>
+                <h4>Surveillance & Anomaly Detection</h4>
+                <p>Monitors 540,000+ longitudinal transaction records across M-Pesa and banking rails, applying Z-score and off-hours statistical filters to detect fraudulent or erratic spending.</p>
+            </div>
+
+            <div class="feature-box">
+                <div class="feature-icon"><i class="fa-solid fa-file-powerpoint"></i></div>
+                <h4>Automated Executive Reporting</h4>
+                <p>One-click generation and download of 5-slide Executive PowerPoint decks (.pptx) and multi-tab Excel financial models (.xlsx) for board and loan reviews.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Tech Stack Matrix -->
+    <section class="section-container" id="tech">
+        <div class="section-header">
+            <h2>Incorporated Technology Stack</h2>
+            <p>Engineered for high performance, modularity, and 100% self-contained local deployment.</p>
+        </div>
+
+        <div class="tech-grid">
+            <div class="tech-item">
+                <i class="fa-brands fa-python"></i>
+                <div>
+                    <h5>Python 3.12+</h5>
+                    <p>Core Runtime & Algorithms</p>
+                </div>
+            </div>
+
+            <div class="tech-item">
+                <i class="fa-solid fa-robot"></i>
+                <div>
+                    <h5>LangGraph & LangChain</h5>
+                    <p>Multi-Agent State Workflows</p>
+                </div>
+            </div>
+
+            <div class="tech-item">
+                <i class="fa-solid fa-microchip"></i>
+                <div>
+                    <h5>Ollama (llama3.2)</h5>
+                    <p>Local-First LLM Engine</p>
+                </div>
+            </div>
+
+            <div class="tech-item">
+                <i class="fa-solid fa-bolt"></i>
+                <div>
+                    <h5>FastAPI & Uvicorn</h5>
+                    <p>High-Throughput Async REST API</p>
+                </div>
+            </div>
+
+            <div class="tech-item">
+                <i class="fa-solid fa-desktop"></i>
+                <div>
+                    <h5>Django 5</h5>
+                    <p>Executive Dashboard & Auth</p>
+                </div>
+            </div>
+
+            <div class="tech-item">
+                <i class="fa-solid fa-database"></i>
+                <div>
+                    <h5>PostgreSQL 16 & SQLAlchemy</h5>
+                    <p>Relational Ledger & Storage</p>
+                </div>
+            </div>
+
+            <div class="tech-item">
+                <i class="fa-solid fa-clock"></i>
+                <div>
+                    <h5>Celery & Redis 7</h5>
+                    <p>Proactive Scheduled Monitoring</p>
+                </div>
+            </div>
+
+            <div class="tech-item">
+                <i class="fa-brands fa-docker"></i>
+                <div>
+                    <h5>Docker & Docker Compose</h5>
+                    <p>7-Service Orchestrated Stack</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Launch CTA -->
+    <div class="cta-banner">
+        <h2>Experience the Financial Intelligence Hub</h2>
+        <p>Explore real-time multi-year SME analytics, trigger AI specialist agents, upload business documents, and download presentation decks.</p>
+        <a href="{% url 'index' %}" class="btn-launch"><i class="fa-solid fa-rocket"></i> Launch Interactive Dashboard</a>
+    </div>
+
+    <!-- Footer -->
+    <footer class="landing-footer">
+        <p>&copy; 2026 <strong>samstatsai</strong> (MSc. Data Science, Strathmore University). Developed for Production AI Portfolio Excellence.</p>
+    </footer>
+
+</body>
+</html>

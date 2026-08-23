@@ -31,6 +31,7 @@ def _compute_amount_zscore(df: pd.DataFrame) -> pd.DataFrame:
     if df.empty:
         return df
     df = df.copy()
+    df["amount"] = pd.to_numeric(df["amount"], errors="coerce").fillna(0.0)
     mean = df["amount"].mean()
     std = df["amount"].std()
     if std == 0 or pd.isna(std):

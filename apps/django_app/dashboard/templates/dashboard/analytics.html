@@ -1,82 +1,149 @@
 {% extends "base.html" %}
 
-{% block title %}Analytics - Kenya SME FI{% endblock %}
+{% block title %}Analytics & Financial Trends - Kenya SME FI{% endblock %}
 
 {% block content %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+    .profit-positive { color: #047857; }
+    .profit-negative { color: #b91c1c; }
+</style>
 
-<h1>SME Multi-Year Analytics & Trends</h1>
-
-<div class="card">
-    <form method="get" action="{% url 'analytics' %}">
-        <label for="business_id">Business ID</label>
-        <select name="business_id" id="business_id" onchange="this.form.submit()">
-            {% for b in businesses %}
-            <option value="{{ b.business_id }}" {% if b.business_id == business_id %}selected{% endif %}>{{ b.business_id }} - {{ b.business_name }}</option>
-            {% endfor %}
-        </select>
-    </form>
-    {% if error %}
-        <p class="error">{{ error }}</p>
-    {% endif %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+    <div>
+        <h1 style="margin: 0; font-size: 1.8rem; font-weight: 800; color: #0f172a;">3-Year Performance & Trend Analytics</h1>
+        <p style="margin: 0.3rem 0 0; color: #64748b; font-size: 0.95rem;">Comprehensive longitudinal analysis across 36 operating months (2021 – 2023)</p>
+    </div>
+    <div>
+        <form method="get" action="{% url 'analytics' %}" style="display: flex; gap: 0.5rem; align-items: center;">
+            <label for="business_id" style="font-weight: 600; font-size: 0.9rem; color: #334155;">Select SME:</label>
+            <select name="business_id" id="business_id" onchange="this.form.submit()" style="font-weight: 600; border: 2px solid #0284c7; background: #f0f9ff;">
+                {% for b in businesses %}
+                <option value="{{ b.business_id }}" {% if b.business_id == business_id %}selected{% endif %}>{{ b.business_id }} - {{ b.business_name }}</option>
+                {% endfor %}
+            </select>
+        </form>
+    </div>
 </div>
+
+{% if error %}
+    <div class="error"><i class="fa-solid fa-triangle-exclamation"></i> {{ error }}</div>
+{% endif %}
 
 {% if profile %}
-<div class="card">
-    <h2>{{ profile.business_name }} ({{ profile.business_id }})</h2>
-    <p>{{ profile.sector }} | {{ profile.county }} | {{ profile.business_size }} | {{ profile.registration_status }}</p>
-    <p>Employees: {{ profile.number_of_employees }} | Age: {{ profile.business_age_years }} years | Monthly baseline: KES {{ profile.monthly_revenue_estimate_fmt }}</p>
+<!-- SME Header Card -->
+<div class="card" style="background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%); border-left: 5px solid #0284c7;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
+        <div>
+            <h2 style="margin: 0; color: #0f172a; font-size: 1.4rem;">
+                <i class="fa-solid fa-store" style="color: #0284c7;"></i> {{ profile.business_name }} 
+                <span style="font-size: 0.85rem; background: #e0f2fe; color: #0369a1; padding: 0.2rem 0.6rem; border-radius: 12px; font-weight: 600; margin-left: 0.5rem;">{{ profile.business_id }}</span>
+            </h2>
+            <p style="margin: 0.5rem 0 0; color: #64748b; font-size: 0.92rem;">
+                <strong>Sector:</strong> {{ profile.sector }} &nbsp;|&nbsp; 
+                <strong>County:</strong> {{ profile.county }} &nbsp;|&nbsp; 
+                <strong>Scale:</strong> <span style="text-transform: capitalize; font-weight: 600;">{{ profile.business_size }}</span> &nbsp;|&nbsp; 
+                <strong>Status:</strong> <span style="text-transform: capitalize; font-weight: 600;">{{ profile.registration_status }}</span>
+            </p>
+        </div>
+        <div style="text-align: right;">
+            <div style="font-size: 0.8rem; color: #64748b; font-weight: 600; text-transform: uppercase;">Estimated Monthly Base</div>
+            <div style="font-size: 1.3rem; font-weight: 800; color: #0f172a;">KES {{ profile.monthly_revenue_estimate_fmt }}</div>
+        </div>
+    </div>
 </div>
 
+<!-- 3-Year KPI Metrics -->
 <div class="card">
-    <h2>3-Year Performance Summary ({{ period_start }} to {{ period_end }})</h2>
+    <h2><i class="fa-solid fa-gauge-high" style="color: #0284c7;"></i> 3-Year Aggregate Financial KPIs</h2>
     <div class="grid">
-        <div class="metric"><h3>Total Revenue</h3><p>KES {{ summary.revenue_fmt }}</p></div>
-        <div class="metric"><h3>Total Expenses</h3><p>KES {{ summary.expenses_fmt }}</p></div>
-        <div class="metric"><h3>Total Net Profit</h3><p>KES {{ summary.profit_fmt }}</p></div>
-        <div class="metric"><h3>Average Profit Margin</h3><p>{{ summary.profit_margin_percent }}%</p></div>
-        <div class="metric"><h3>Cumulative Cash Flow</h3><p>KES {{ summary.net_cash_flow_fmt }}</p></div>
-        <div class="metric"><h3>Outstanding Receivables</h3><p>KES {{ summary.outstanding_receivables_fmt }}</p></div>
+        <div class="metric">
+            <h3><i class="fa-solid fa-money-bill-wave"></i> Gross Revenue</h3>
+            <p>KES {{ summary.revenue_fmt }}</p>
+        </div>
+        <div class="metric" style="background: linear-gradient(145deg, #fef2f2 0%, #fee2e2 100%); border-color: #fecaca;">
+            <h3 style="color: #b91c1c;"><i class="fa-solid fa-receipt"></i> Total Expenses</h3>
+            <p style="color: #7f1d1d;">KES {{ summary.expenses_fmt }}</p>
+        </div>
+        <div class="metric" style="background: linear-gradient(145deg, #ecfdf5 0%, #d1fae5 100%); border-color: #a7f3d0;">
+            <h3 style="color: #047857;"><i class="fa-solid fa-sack-dollar"></i> Net Profit</h3>
+            <p style="color: #064e3b;">KES {{ summary.profit_fmt }}</p>
+        </div>
+        <div class="metric">
+            <h3><i class="fa-solid fa-percent"></i> Profit Margin</h3>
+            <p>{{ summary.profit_margin_percent }}%</p>
+        </div>
+        <div class="metric">
+            <h3><i class="fa-solid fa-hand-holding-dollar"></i> Cash Flow</h3>
+            <p>KES {{ summary.net_cash_flow_fmt }}</p>
+        </div>
+        <div class="metric" style="background: linear-gradient(145deg, #fffbeb 0%, #fef3c7 100%); border-color: #fde68a;">
+            <h3 style="color: #b45309;"><i class="fa-solid fa-file-invoice"></i> Receivables</h3>
+            <p style="color: #78350f;">KES {{ summary.outstanding_receivables_fmt }}</p>
+        </div>
     </div>
 </div>
 
-<div class="card">
-    <h2>3-Year Monthly Revenue vs Expenses Trend</h2>
-    <div style="height: 320px; width: 100%;">
-        <canvas id="trendChart"></canvas>
+<!-- Main Graphs Side by Side -->
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+    <!-- 3-Year Trend Line Chart -->
+    <div class="card" style="margin-bottom: 0;">
+        <h2><i class="fa-solid fa-chart-line" style="color: #0284c7;"></i> 36-Month Revenue vs Expenses Trend</h2>
+        <p style="color: #64748b; font-size: 0.88rem; margin-top: 0;">Monthly timeline of sales revenue, operating expenses, and net profit margins</p>
+        <div style="height: 320px; width: 100%; margin-top: 1rem;">
+            <canvas id="trendChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Operating Expense Bar Chart (Replacing old Donut) -->
+    <div class="card" style="margin-bottom: 0;">
+        <h2><i class="fa-solid fa-chart-simple" style="color: #0284c7;"></i> Expense Categories</h2>
+        <p style="color: #64748b; font-size: 0.88rem; margin-top: 0;">Categorical distribution (Bar Chart)</p>
+        <div style="height: 320px; width: 100%; margin-top: 1rem;">
+            <canvas id="expenseBarChart"></canvas>
+        </div>
     </div>
 </div>
 
+<!-- Detailed Monthly Records Table -->
 <div class="card">
-    <h2>Expense Breakdown by Category (3-Year Total)</h2>
-    <div style="max-height: 280px; width: 100%; display: flex; justify-content: center;">
-        <canvas id="expenseChart" style="max-height: 280px;"></canvas>
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h2 style="margin: 0;"><i class="fa-solid fa-table-list" style="color: #0284c7;"></i> Chronological Monthly Records (36 Months)</h2>
+        <span style="font-size: 0.85rem; color: #64748b; font-weight: 600;">2021 – 2023 Historical Data</span>
     </div>
-</div>
-
-<div class="card">
-    <h2>Monthly Financial Records</h2>
     {% if monthly_data %}
-    <table>
-        <thead>
-            <tr>
-                <th>Month</th>
-                <th>Revenue (KES)</th>
-                <th>Expenses (KES)</th>
-                <th>Profit (KES)</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for m in monthly_data %}
-            <tr>
-                <td>{{ m.month }}</td>
-                <td>KES {{ m.revenue_fmt }}</td>
-                <td>KES {{ m.expenses_fmt }}</td>
-                <td>KES {{ m.profit_fmt }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <div style="max-height: 380px; overflow-y: auto; margin-top: 1rem; border: 1px solid #e2e8f0; border-radius: 8px;">
+        <table style="margin-top: 0;">
+            <thead>
+                <tr style="position: sticky; top: 0; background: #f8fafc; z-index: 10;">
+                    <th>Operating Month</th>
+                    <th style="text-align: right;">Sales Revenue (KES)</th>
+                    <th style="text-align: right;">Expenses (KES)</th>
+                    <th style="text-align: right;">Net Profit (KES)</th>
+                    <th style="text-align: center;">Health Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for m in monthly_data %}
+                <tr>
+                    <td style="font-weight: 600; color: #1e293b;"><i class="fa-regular fa-calendar" style="color: #64748b; margin-right: 0.3rem;"></i> {{ m.month }}</td>
+                    <td style="text-align: right; font-weight: 600; color: #0369a1;">KES {{ m.revenue_fmt }}</td>
+                    <td style="text-align: right; color: #b91c1c;">KES {{ m.expenses_fmt }}</td>
+                    <td style="text-align: right; font-weight: 700;" class="{% if m.profit >= 0 %}profit-positive{% else %}profit-negative{% endif %}">
+                        KES {{ m.profit_fmt }}
+                    </td>
+                    <td style="text-align: center;">
+                        {% if m.profit >= 0 %}
+                            <span style="background: #dcfce7; color: #15803d; padding: 0.2rem 0.5rem; border-radius: 12px; font-size: 0.75rem; font-weight: 700;"><i class="fa-solid fa-check"></i> Profitable</span>
+                        {% else %}
+                            <span style="background: #fee2e2; color: #b91c1c; padding: 0.2rem 0.5rem; border-radius: 12px; font-size: 0.75rem; font-weight: 700;"><i class="fa-solid fa-xmark"></i> Deficit</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
     {% else %}
         <p>No monthly data available for this period.</p>
     {% endif %}
@@ -94,6 +161,7 @@
     const expenses = monthlyData.map(d => d.expenses);
     const profits = monthlyData.map(d => d.profit);
 
+    // 1. Line Chart for 36-Month Trend
     const ctxTrend = document.getElementById('trendChart').getContext('2d');
     new Chart(ctxTrend, {
         type: 'line',
@@ -101,85 +169,123 @@
             labels: months,
             datasets: [
                 {
-                    label: 'Revenue (KES)',
+                    label: 'Gross Revenue',
                     data: revenues,
-                    borderColor: '#005a87',
-                    backgroundColor: 'rgba(0, 90, 135, 0.1)',
+                    borderColor: '#0284c7',
+                    backgroundColor: 'rgba(2, 132, 199, 0.08)',
                     fill: true,
-                    tension: 0.3
+                    tension: 0.3,
+                    borderWidth: 2.5,
+                    pointRadius: 2.5,
+                    pointHoverRadius: 5
                 },
                 {
-                    label: 'Expenses (KES)',
+                    label: 'Operating Expenses',
                     data: expenses,
-                    borderColor: '#b00020',
-                    backgroundColor: 'rgba(176, 0, 32, 0.05)',
+                    borderColor: '#ef4444',
+                    backgroundColor: 'rgba(239, 68, 68, 0.04)',
                     fill: true,
-                    tension: 0.3
+                    tension: 0.3,
+                    borderWidth: 2,
+                    pointRadius: 2.5,
+                    pointHoverRadius: 5
                 },
                 {
-                    label: 'Profit (KES)',
+                    label: 'Net Margin / Profit',
                     data: profits,
-                    borderColor: '#007a3d',
-                    borderDash: [5, 5],
+                    borderColor: '#10b981',
+                    borderDash: [4, 4],
                     fill: false,
-                    tension: 0.3
+                    tension: 0.3,
+                    borderWidth: 2,
+                    pointRadius: 0
                 }
             ]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
+            plugins: {
+                legend: { position: 'top', labels: { font: { family: 'Plus Jakarta Sans', weight: '600' } } }
+            },
             scales: {
+                x: { grid: { display: false } },
                 y: {
+                    grid: { color: '#f1f5f9' },
                     ticks: {
-                        callback: function(value) { return 'KES ' + value.toLocaleString(); }
+                        callback: function(value) { return 'KES ' + (value >= 1000000 ? (value/1000000).toFixed(1) + 'M' : value.toLocaleString()); }
                     }
                 }
             }
         }
     });
 
+    // 2. Bar Chart for Expense Categories (Replaced old Donut)
     const expCategories = expenseData.map(c => c.category);
     const expTotals = expenseData.map(c => c.total);
 
-    const ctxExp = document.getElementById('expenseChart').getContext('2d');
+    const ctxExp = document.getElementById('expenseBarChart').getContext('2d');
     new Chart(ctxExp, {
-        type: 'doughnut',
+        type: 'bar',
         data: {
             labels: expCategories,
             datasets: [{
+                label: 'Expenses (KES)',
                 data: expTotals,
                 backgroundColor: [
-                    '#005a87', '#007a3d', '#e65100', '#6a1b9a', '#00838f',
-                    '#c2185b', '#455a64', '#fbc02d', '#512da8', '#d32f2f'
-                ]
+                    '#0284c7', '#0ea5e9', '#38bdf8', '#059669', '#10b981',
+                    '#f59e0b', '#d97706', '#8b5cf6', '#64748b', '#ef4444'
+                ],
+                borderRadius: 6
             }]
         },
         options: {
             responsive: true,
-            maintainAspectRatio: false
+            maintainAspectRatio: false,
+            indexAxis: 'y',
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                x: {
+                    grid: { color: '#f1f5f9' },
+                    ticks: {
+                        callback: function(v) { return 'KES ' + (v >= 1000000 ? (v/1000000).toFixed(1) + 'M' : (v/1000).toFixed(0) + 'k'); }
+                    }
+                },
+                y: { grid: { display: false } }
+            }
         }
     });
 </script>
 {% endif %}
 
+<!-- Portfolio Overview -->
 <div class="card">
-    <h2>Portfolio Overview (100 Kenyan SMEs)</h2>
-    <p>Total businesses: {{ portfolio.total_businesses }}</p>
+    <h2><i class="fa-solid fa-cubes" style="color: #0284c7;"></i> Kenyan SME Portfolio Aggregates (100 Enterprises)</h2>
+    <p style="color: #64748b; font-size: 0.9rem; margin-top: 0;">Cross-portfolio segment distribution across Nairobi, Kiambu, Mombasa, Nakuru, and Uasin Gishu counties</p>
     <div class="grid">
-        <div class="metric"><h3>By Business Size</h3>
+        <div class="metric" style="background: white; border: 1px solid #e2e8f0;">
+            <h3 style="color: #475569;"><i class="fa-solid fa-sitemap"></i> By Business Scale</h3>
             {% for item in portfolio.by_size %}
-            <p>{{ item.label }}: {{ item.count }}</p>
+            <div style="display: flex; justify-content: space-between; font-size: 0.92rem; padding: 0.25rem 0; font-weight: 600;">
+                <span style="text-transform: capitalize; color: #64748b;">{{ item.label }}:</span>
+                <span style="color: #0f172a;">{{ item.count }} SMEs</span>
+            </div>
             {% endfor %}
         </div>
         {% if portfolio.has_risk_data %}
-        <div class="metric"><h3>By Risk Level</h3>
+        <div class="metric" style="background: white; border: 1px solid #e2e8f0;">
+            <h3 style="color: #475569;"><i class="fa-solid fa-shield-halved"></i> By Credit Risk Tier</h3>
             {% for item in portfolio.by_risk %}
-            <p>{{ item.label }}: {{ item.count }}</p>
+            <div style="display: flex; justify-content: space-between; font-size: 0.92rem; padding: 0.25rem 0; font-weight: 600;">
+                <span style="text-transform: capitalize; color: #64748b;">{{ item.label }} Risk:</span>
+                <span style="color: #0f172a;">{{ item.count }} SMEs</span>
+            </div>
             {% endfor %}
         </div>
         {% endif %}
     </div>
 </div>
 {% endblock %}
-

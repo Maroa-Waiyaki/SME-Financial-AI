@@ -4,36 +4,493 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Kenya SME Financial Intelligence{% endblock %}</title>
+    <!-- Modern Font & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; margin: 0; padding: 0; background: #f7f8fa; }
-        .navbar { background: #005a87; color: white; padding: 1rem; display: flex; justify-content: space-between; }
-        .navbar a { color: white; text-decoration: none; margin-right: 1rem; }
-        .container { max-width: 1100px; margin: 2rem auto; padding: 0 1rem; }
-        .card { background: white; border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; }
-        .metric { background: #eef6fb; padding: 1rem; border-radius: 6px; }
-        .metric h3 { margin: 0 0 0.5rem; font-size: 0.9rem; color: #444; }
-        .metric p { margin: 0; font-size: 1.4rem; font-weight: 600; color: #005a87; }
-        table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
-        th, td { text-align: left; padding: 0.6rem; border-bottom: 1px solid #e1e4e8; }
-        .error { color: #b00020; }
+        :root {
+            --primary: #0284c7;
+            --primary-dark: #0369a1;
+            --primary-light: #e0f2fe;
+            --secondary: #0f172a;
+            --accent: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.08), 0 4px 6px -4px rgb(0 0 0 / 0.04);
+        }
+
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: var(--bg);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Top Navbar */
+        .navbar {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: white;
+            padding: 0.85rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .brand-container {
+            display: flex;
+            align-items: center;
+            gap: 0.85rem;
+            text-decoration: none;
+            color: white;
+        }
+
+        .brand-logo-badge {
+            background: linear-gradient(135deg, #38bdf8 0%, #0284c7 100%);
+            width: 42px;
+            height: 42px;
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            color: white;
+            box-shadow: 0 0 15px rgba(56, 189, 248, 0.45);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .brand-text-block {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .brand-name {
+            font-size: 1.15rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            color: #ffffff;
+            line-height: 1.2;
+        }
+
+        .brand-tagline {
+            font-size: 0.72rem;
+            color: #38bdf8;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .nav-links a {
+            color: #cbd5e1;
+            text-decoration: none;
+            padding: 0.5rem 0.85rem;
+            border-radius: var(--radius-sm);
+            font-weight: 600;
+            font-size: 0.88rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            transition: all 0.2s ease;
+        }
+
+        .nav-links a:hover {
+            color: white;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-links a.active {
+            color: white;
+            background: var(--primary);
+            box-shadow: 0 0 10px rgba(2, 132, 199, 0.5);
+        }
+
+        .nav-logout {
+            background: rgba(239, 68, 68, 0.15) !important;
+            color: #fca5a5 !important;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            margin-left: 0.5rem;
+        }
+
+        .nav-logout:hover {
+            background: var(--danger) !important;
+            color: white !important;
+        }
+
+        /* Container Layout */
+        .container {
+            max-width: 1200px;
+            width: 100%;
+            margin: 2rem auto;
+            padding: 0 1.5rem;
+            flex: 1;
+        }
+
+        /* Modern Card Styles */
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 1.75rem;
+            margin-bottom: 1.75rem;
+            box-shadow: var(--shadow-sm);
+            transition: box-shadow 0.2s ease;
+        }
+
+        .card:hover {
+            box-shadow: var(--shadow);
+        }
+
+        .card h1, .card h2 {
+            margin-top: 0;
+            color: var(--secondary);
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        .card h2 {
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Grid & Metrics */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+            gap: 1.25rem;
+            margin-top: 1rem;
+        }
+
+        .metric {
+            background: linear-gradient(145deg, #f0f9ff 0%, #e0f2fe 100%);
+            border: 1px solid #bae6fd;
+            padding: 1.25rem;
+            border-radius: var(--radius-sm);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .metric h3 {
+            margin: 0 0 0.5rem;
+            font-size: 0.82rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #0369a1;
+        }
+
+        .metric p {
+            margin: 0;
+            font-size: 1.45rem;
+            font-weight: 800;
+            color: #0c4a6e;
+            letter-spacing: -0.02em;
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin-top: 1rem;
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        th {
+            background: #f1f5f9;
+            color: var(--text-muted);
+            font-weight: 700;
+            font-size: 0.82rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 0.85rem 1rem;
+            border-bottom: 1px solid var(--border);
+            text-align: left;
+        }
+
+        td {
+            padding: 0.85rem 1rem;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.92rem;
+            color: var(--text-main);
+        }
+
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: #f8fafc; }
+
+        /* Form Controls */
+        input[type="text"], input[type="password"], select {
+            font-family: inherit;
+            font-size: 0.92rem;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 0.6rem 0.9rem;
+            outline: none;
+            transition: all 0.2s;
+            background: #ffffff;
+        }
+
+        input[type="text"]:focus, select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+        }
+
+        button, .btn {
+            font-family: inherit;
+            font-weight: 600;
+            font-size: 0.92rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.65rem 1.25rem;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            text-decoration: none;
+        }
+
+        button:hover, .btn:hover {
+            background: var(--primary-dark);
+            box-shadow: 0 2px 4px rgba(2, 132, 199, 0.25);
+        }
+
+        .error {
+            color: var(--danger);
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            padding: 0.75rem 1rem;
+            border-radius: var(--radius-sm);
+            margin-top: 0.75rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        /* Modern Footer */
+        .footer {
+            background: #0f172a;
+            color: #94a3b8;
+            border-top: 1px solid #1e293b;
+            padding: 2.5rem 2rem 1.5rem;
+            margin-top: auto;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: 2rem;
+        }
+
+        .footer-brand-title {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .footer-logo-badge {
+            background: linear-gradient(135deg, #38bdf8 0%, #0284c7 100%);
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.95rem;
+            color: white;
+        }
+
+        .footer-brand h4 {
+            color: white;
+            margin: 0;
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        .footer-brand p {
+            margin: 0;
+            font-size: 0.88rem;
+            line-height: 1.6;
+        }
+
+        .footer-author-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            background: #1e293b;
+            border: 1px solid #334155;
+            padding: 0.4rem 0.85rem;
+            border-radius: 20px;
+            font-size: 0.82rem;
+            color: #f1f5f9;
+        }
+
+        .footer-author-tag strong {
+            color: #38bdf8;
+            font-weight: 700;
+        }
+
+        .footer-links h5 {
+            color: #f1f5f9;
+            margin: 0 0 0.75rem;
+            font-size: 0.9rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .footer-links ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .footer-links li {
+            margin-bottom: 0.5rem;
+        }
+
+        .footer-links a {
+            color: #94a3b8;
+            text-decoration: none;
+            font-size: 0.88rem;
+            transition: color 0.2s;
+        }
+
+        .footer-links a:hover {
+            color: #38bdf8;
+        }
+
+        .footer-bottom {
+            max-width: 1200px;
+            margin: 2rem auto 0;
+            padding-top: 1.5rem;
+            border-top: 1px solid #1e293b;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.82rem;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+            padding: 0.25rem 0.6rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .status-dot {
+            width: 7px;
+            height: 7px;
+            background: #10b981;
+            border-radius: 50%;
+            box-shadow: 0 0 6px #10b981;
+        }
     </style>
 </head>
 <body>
     <nav class="navbar">
-        <div><strong>Kenya SME FI</strong></div>
-        <div>
-            <a href="{% url 'index' %}">Dashboard</a>
-            <a href="{% url 'analytics' %}">Analytics</a>
-            <a href="{% url 'transactions' %}">Transactions</a>
-            <a href="{% url 'reports' %}">P&L & Balance Sheet</a>
-            <a href="{% url 'documents' %}">Documents (RAG)</a>
-            <a href="{% url 'chat' %}">AI Chat</a>
-            <a href="{% url 'logout' %}">Logout</a>
+        <a href="{% url 'index' %}" class="brand-container">
+            <div class="brand-logo-badge">
+                <i class="fa-solid fa-brain"></i>
+            </div>
+            <div class="brand-text-block">
+                <span class="brand-name">Kenya SME Intelligence</span>
+                <span class="brand-tagline"><i class="fa-solid fa-code" style="font-size: 0.65rem;"></i> samstatsai</span>
+            </div>
+        </a>
+        <div class="nav-links">
+            <a href="{% url 'index' %}"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
+            <a href="{% url 'analytics' %}"><i class="fa-solid fa-chart-line"></i> Analytics</a>
+            <a href="{% url 'transactions' %}"><i class="fa-solid fa-receipt"></i> Transactions</a>
+            <a href="{% url 'reports' %}"><i class="fa-solid fa-file-invoice-dollar"></i> P&L & Balance Sheet</a>
+            <a href="{% url 'documents' %}"><i class="fa-solid fa-folder-open"></i> Documents (RAG)</a>
+            <a href="{% url 'chat' %}"><i class="fa-solid fa-comments"></i> AI Chat</a>
+            <a href="{% url 'logout' %}" class="nav-logout"><i class="fa-solid fa-arrow-right-from-bracket"></i> Logout</a>
         </div>
     </nav>
+
     <main class="container">
         {% block content %}{% endblock %}
     </main>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-brand">
+                <div class="footer-brand-title">
+                    <div class="footer-logo-badge">
+                        <i class="fa-solid fa-brain"></i>
+                    </div>
+                    <h4>Kenya SME Financial Intelligence</h4>
+                </div>
+                <p>An enterprise-grade Agentic AI and Credit Risk platform tailored for Kenyan SMEs. Integrating deterministic financial metrics, explainable machine learning scorecards, multi-format RAG document ingestion, and local LLM intelligence.</p>
+                <div class="footer-author-tag">
+                    <i class="fa-solid fa-laptop-code" style="color: #38bdf8;"></i> Developed by <strong>samstatsai</strong>
+                </div>
+            </div>
+            <div class="footer-links">
+                <h5>Platform Navigation</h5>
+                <ul>
+                    <li><a href="{% url 'index' %}"><i class="fa-solid fa-chevron-right" style="font-size: 0.7rem;"></i> SME Overview</a></li>
+                    <li><a href="{% url 'analytics' %}"><i class="fa-solid fa-chevron-right" style="font-size: 0.7rem;"></i> Trend Analytics</a></li>
+                    <li><a href="{% url 'reports' %}"><i class="fa-solid fa-chevron-right" style="font-size: 0.7rem;"></i> Statement Generator</a></li>
+                    <li><a href="{% url 'chat' %}"><i class="fa-solid fa-chevron-right" style="font-size: 0.7rem;"></i> AI Specialist Chat</a></li>
+                </ul>
+            </div>
+            <div class="footer-links">
+                <h5>Engine Architecture</h5>
+                <ul>
+                    <li><span style="color: #cbd5e1; font-size: 0.85rem;"><i class="fa-solid fa-robot"></i> Ollama (llama3.2)</span></li>
+                    <li><span style="color: #cbd5e1; font-size: 0.85rem;"><i class="fa-solid fa-database"></i> PostgreSQL 16</span></li>
+                    <li><span style="color: #cbd5e1; font-size: 0.85rem;"><i class="fa-solid fa-bolt"></i> Celery Proactive Beat</span></li>
+                    <li><span style="color: #cbd5e1; font-size: 0.85rem;"><i class="fa-solid fa-magnifying-glass"></i> Weaviate & RAG</span></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <div>&copy; 2026 Kenya SME Financial Intelligence Platform. Built & Developed by <strong>samstatsai</strong>.</div>
+            <div class="status-badge">
+                <span class="status-dot"></span> All Systems Operational
+            </div>
+        </div>
+    </footer>
 </body>
 </html>
