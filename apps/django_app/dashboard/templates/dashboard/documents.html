@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}Documents & Knowledge Base - Kenya SME FI{% endblock %}
+
+{% block content %}
+<h1>Documents & Knowledge Base (RAG)</h1>
+
+<div class="card">
+    <h2>Upload Business Document</h2>
+    <p>Upload files related to your business (PDF, Word, Excel, PowerPoint, Markdown, or text). They will be parsed, indexed, and available to answer questions in AI Chat.</p>
+    
+    {% if message %}
+        <p style="color: #007a3d; font-weight: bold;">{{ message }}</p>
+    {% endif %}
+    {% if error %}
+        <p class="error">{{ error }}</p>
+    {% endif %}
+
+    <form method="post" enctype="multipart/form-data" action="{% url 'documents' %}" style="margin-top: 1rem;">
+        {% csrf_token %}
+        <div style="margin-bottom: 1rem;">
+            <label><strong>Select File:</strong></label><br>
+            <input type="file" name="file" required accept=".pdf,.docx,.doc,.xlsx,.xls,.pptx,.ppt,.txt,.md,.csv" style="margin-top: 0.5rem;">
+        </div>
+        
+        <div style="margin-bottom: 1rem;">
+            <label><strong>Associate with Business (Optional):</strong></label><br>
+            <select name="business_id" style="margin-top: 0.5rem; padding: 0.4rem;">
+                <option value="">General / All Businesses</option>
+                {% for b in businesses %}
+                <option value="{{ b.business_id }}">{{ b.business_id }} - {{ b.business_name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <button type="submit" style="background: #005a87; color: white; border: none; padding: 0.6rem 1.2rem; border-radius: 4px; cursor: pointer;">Upload & Index</button>
+    </form>
+</div>
+
+<div class="card">
+    <h2>Indexed Documents in Knowledge Base</h2>
+    {% if documents %}
+    <table>
+        <thead>
+            <tr>
+                <th>Document File</th>
+                <th>Category</th>
+                <th>Size</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for doc in documents %}
+            <tr>
+                <td><strong>{{ doc.name }}</strong></td>
+                <td>{{ doc.type }}</td>
+                <td>{{ doc.size }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+        <p>No documents found in the knowledge base.</p>
+    {% endif %}
+</div>
+{% endblock %}

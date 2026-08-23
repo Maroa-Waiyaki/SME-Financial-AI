@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+
+{% block title %}Financial Statements & Reports - Kenya SME FI{% endblock %}
+
+{% block content %}
+<h1>Financial Statements & Reports</h1>
+
+<div class="card">
+    <form method="get" action="{% url 'reports' %}">
+        <label for="business_id"><strong>Select Business:</strong></label>
+        <select name="business_id" id="business_id" onchange="this.form.submit()" style="padding: 0.4rem; margin-left: 0.5rem;">
+            {% for b in businesses %}
+            <option value="{{ b.business_id }}" {% if b.business_id == business_id %}selected{% endif %}>{{ b.business_id }} - {{ b.business_name }}</option>
+            {% endfor %}
+        </select>
+    </form>
+</div>
+
+{% if pnl and balance_sheet %}
+<div class="card" style="display: flex; justify-content: space-between; align-items: center; background: #eef6fb;">
+    <div>
+        <h2 style="margin: 0;">{{ pnl.business_name }} ({{ pnl.business_id }})</h2>
+        <p style="margin: 0.3rem 0 0 0;">{{ pnl.sector }} | {{ pnl.county }} | Statement Period: {{ pnl.period_start }} to {{ pnl.period_end }}</p>
+    </div>
+    <div style="display: flex; gap: 0.8rem;">
+        <a href="/reports/export/pptx/?business_id={{ business_id }}" style="background: #e65100; color: white; padding: 0.6rem 1rem; border-radius: 4px; text-decoration: none; font-weight: bold;">Download PowerPoint (.pptx)</a>
+        <a href="/reports/export/xlsx/?business_id={{ business_id }}" style="background: #007a3d; color: white; padding: 0.6rem 1rem; border-radius: 4px; text-decoration: none; font-weight: bold;">Download Excel Model (.xlsx)</a>
+    </div>
+</div>
+
+<div class="grid" style="grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+    <!-- Profit & Loss Statement -->
+    <div class="card">
+        <h2>Profit & Loss Statement (P&L)</h2>
+        <p style="color: #666; font-size: 0.9rem;">For the period ended {{ pnl.period_end }}</p>
+        
+        <table>
+            <tbody>
+                <tr style="background: #f9f9f9;">
+                    <td><strong>Gross Sales Revenue</strong></td>
+                    <td style="text-align: right;"><strong>KES {{ pnl.gross_revenue|floatformat:2 }}</strong></td>
+                </tr>
+                <tr>
+                    <td>Less: Cost of Goods Sold (Inventory)</td>
+                    <td style="text-align: right; color: #b00020;">(KES {{ pnl.cost_of_goods_sold|floatformat:2 }})</td>
+                </tr>
+                <tr style="border-top: 2px solid #333; font-weight: bold;">
+                    <td>GROSS PROFIT</td>
+                    <td style="text-align: right;">KES {{ pnl.gross_profit|floatformat:2 }}</td>
+                </tr>
+                <tr>
+                    <td colspan="2" style="background: #f0f4f8; font-weight: bold; font-size: 0.85rem;">OPERATING EXPENSES</td>
+                </tr>
+                {% for cat, amt in pnl.expense_breakdown.items %}
+                {% if cat != "Inventory" %}
+                <tr>
+                    <td style="padding-left: 1.5rem;">{{ cat }}</td>
+                    <td style="text-align: right;">KES {{ amt|floatformat:2 }}</td>
+                </tr>
+                {% endif %}
+                {% endfor %}
+                <tr style="border-top: 1px solid #ddd;">
+                    <td><strong>Total Operating Expenses</strong></td>
+                    <td style="text-align: right; color: #b00020;"><strong>(KES {{ pnl.operating_expenses_total|floatformat:2 }})</strong></td>
+                </tr>
+                <tr style="border-top: 2px solid #005a87; background: #eef6fb; font-size: 1.1rem; font-weight: bold;">
+                    <td>NET PROFIT / EBITDA</td>
+                    <td style="text-align: right; color: #005a87;">KES {{ pnl.net_profit|floatformat:2 }}</td>
+                </tr>
+                <tr>
+                    <td>Net Profit Margin</td>
+                    <td style="text-align: right;"><strong>{{ pnl.net_profit_margin_percent }}%</strong></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Balance Sheet -->
+    <div class="card">
+        <h2>Balance Sheet (Financial Position)</h2>
+        <p style="color: #666; font-size: 0.9rem;">As of {{ balance_sheet.as_of_date }}</p>
+
+        <table>
+            <tbody>
+                <tr style="background: #f0f4f8; font-weight: bold; font-size: 0.85rem;">
+                    <td colspan="2">CURRENT ASSETS</td>
+                </tr>
+                <tr>
+                    <td style="padding-left: 1.5rem;">Cash & Bank Balances</td>
+                    <td style="text-align: right;">KES {{ balance_sheet.assets.current_assets.cash_and_bank|floatformat:2 }}</td>
+                </tr>
+                <tr>
+                    <td style="padding-left: 1.5rem;">Accounts Receivable (Invoices)</td>
+                    <td style="text-align: right;">KES {{ balance_sheet.assets.current_assets.accounts_receivable|floatformat:2 }}</td>
+                </tr>
+                <tr>
+                    <td style="padding-left: 1.5rem;">Estimated Inventory Stock</td>
+                    <td style="text-align: right;">KES {{ balance_sheet.assets.current_assets.inventory_estimate|floatformat:2 }}</td>
+                </tr>
+                <tr style="font-weight: bold;">
+                    <td>Total Current Assets</td>
+                    <td style="text-align: right;">KES {{ balance_sheet.assets.current_assets.total_current_assets|floatformat:2 }}</td>
+                </tr>
+
+                <tr style="background: #f0f4f8; font-weight: bold; font-size: 0.85rem;">
+                    <td colspan="2">FIXED ASSETS</td>
+                </tr>
+                <tr>
+                    <td style="padding-left: 1.5rem;">Property, Plant & Equipment</td>
+                    <td style="text-align: right;">KES {{ balance_sheet.assets.fixed_assets.property_plant_equipment|floatformat:2 }}</td>
+                </tr>
+                <tr style="border-top: 2px solid #005a87; font-weight: bold; font-size: 1.05rem;">
+                    <td>TOTAL ASSETS</td>
+                    <td style="text-align: right; color: #005a87;">KES {{ balance_sheet.assets.total_assets|floatformat:2 }}</td>
+                </tr>
+
+                <tr style="background: #f0f4f8; font-weight: bold; font-size: 0.85rem;">
+                    <td colspan="2">LIABILITIES & EQUITY</td>
+                </tr>
+                <tr>
+                    <td style="padding-left: 1.5rem;">Accounts Payable & Accruals</td>
+                    <td style="text-align: right;">KES {{ balance_sheet.liabilities.current_liabilities.accounts_payable_estimate|floatformat:2 }}</td>
+                </tr>
+                <tr>
+                    <td style="padding-left: 1.5rem;">Outstanding Bank / Fintech Loans</td>
+                    <td style="text-align: right;">KES {{ balance_sheet.liabilities.current_liabilities.short_term_debt|floatformat:2 }}</td>
+                </tr>
+                <tr style="font-weight: bold;">
+                    <td>Total Liabilities</td>
+                    <td style="text-align: right; color: #b00020;">KES {{ balance_sheet.liabilities.total_liabilities|floatformat:2 }}</td>
+                </tr>
+                <tr>
+                    <td style="padding-left: 1.5rem;">Owner's Equity & Retained Earnings</td>
+                    <td style="text-align: right;">KES {{ balance_sheet.equity.total_equity|floatformat:2 }}</td>
+                </tr>
+                <tr style="border-top: 2px solid #005a87; font-weight: bold; font-size: 1.05rem;">
+                    <td>TOTAL LIABILITIES & EQUITY</td>
+                    <td style="text-align: right; color: #005a87;">KES {{ balance_sheet.equity.total_liabilities_and_equity|floatformat:2 }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

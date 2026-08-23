@@ -3,7 +3,7 @@ from __future__ import annotations
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from apps.api.routers import businesses, chat, health
+from apps.api.routers import businesses, chat, documents, health, reports
 
 
 def create_app() -> FastAPI:
@@ -24,6 +24,8 @@ def create_app() -> FastAPI:
     app.include_router(health.router, prefix="/api/v1")
     app.include_router(businesses.router, prefix="/api/v1")
     app.include_router(chat.router, prefix="/api/v1")
+    app.include_router(documents.router, prefix="/api/v1")
+    app.include_router(reports.router, prefix="/api/v1")
 
     @app.get("/")
     async def root() -> dict[str, str]:

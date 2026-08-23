@@ -173,11 +173,22 @@ def build_features(dfs: dict[str, pd.DataFrame]) -> pd.DataFrame:
         0,
     )
 
-    # Target: high-risk if struggling/anomalous or any defaulted loan
+    # Target definition.
+    #
+    # The label is the *latent distress profile* assigned by the synthetic data
+    # generator ("struggling" or "anomalous"). These businesses are generated with
+    # genuinely worse fundamentals (negative revenue trend, higher expense ratios,
+    # higher overdue rates, more erratic transactions), so the learning problem is
+    # to recover that latent state from observable financial behaviour.
+    #
+    # NOTE ON LEAKAGE: an earlier version defined the target as
+    # `profile_flag | defaulted` while ALSO exposing `defaulted` as a model feature.
+    # That is direct target leakage - the model could read part of its own label.
+    # `defaulted` is now excluded from the target and kept only as a legitimate
+    # observable predictor (prior repayment history). See MODEL_FEATURES in
+    # src/ml/scorecard.py.
     high_risk_profiles = {"struggling", "anomalous"}
-    profile_flag = features["profile"].isin(high_risk_profiles).astype(int)
-    defaulted = features["defaulted"].fillna(0).astype(int)
-    features["target"] = (profile_flag | defaulted).astype(int)
+    features["target"] = features["profile"].isin(high_risk_profiles).astype(int)
 
     features = features.drop(columns=["profile"], errors="ignore")
     return features

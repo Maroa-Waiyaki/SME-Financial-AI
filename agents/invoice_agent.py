@@ -55,18 +55,15 @@ def invoice_agent(state: AgentState) -> dict:
     system = (
         "You are a Kenyan SME accounts-receivable assistant. "
         "Use only the provided invoice data. Use KES with two decimal places. "
-        "Use normal ASCII punctuation. "
-        "Clearly separate facts from recommendations. If no invoices are found, say so."
+        "List the invoices present in the data."
     )
     prompt = (
         f"User question: {question}\n\n"
         f"Data: {data}\n\n"
-        "Format:\n"
-        "**Invoices**\n"
-        "- List each invoice with ID, date, amount, amount paid, outstanding, and status\n\n"
-        "**Outstanding summary**\n"
-        "- Total outstanding and count\n\n"
-        "**Recommendation** (one short collection or follow-up suggestion, only if relevant)"
+        "Instructions:\n"
+        "1. List the invoices under **Invoices** (ID, date, amount in KES, status).\n"
+        "2. Provide **Outstanding summary** (total outstanding amount and count).\n"
+        "3. Provide one brief **Recommendation**."
     )
 
     llm = get_llm()

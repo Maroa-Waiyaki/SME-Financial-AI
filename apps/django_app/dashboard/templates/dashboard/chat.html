@@ -1,38 +1,63 @@
 {% extends "base.html" %}
 
-{% block title %}AI Chat - Kenya SME FI{% endblock %}
+{% block title %}AI Chat & Chart Assistant - Kenya SME FI{% endblock %}
 
 {% block content %}
-<h1>AI Financial Assistant</h1>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+<h1>AI Financial & Visual Assistant</h1>
 
 <div class="card">
-    <p class="hint"><strong>Tip:</strong> Include a business ID and date range for best results, e.g. <em>"What is the revenue for B000001 from 2023-01-01 to 2023-12-31?"</em></p>
+    <p class="hint"><strong>Quick Prompts & Chart Triggers:</strong> Click any prompt below or type your own question.</p>
+    <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem;">
+        <button type="button" class="prompt-chip" onclick="fillPrompt('Plot the monthly sales trend line graph for B000001')">📈 Line Chart: Monthly Sales Trend</button>
+        <button type="button" class="prompt-chip" onclick="fillPrompt('Show me a doughnut chart of the expense breakdown for B000001')">🍩 Doughnut: Expense Breakdown</button>
+        <button type="button" class="prompt-chip" onclick="fillPrompt('What is the credit risk score and drivers graph for B000001?')">📊 Bar Chart: Credit Risk Drivers</button>
+        <button type="button" class="prompt-chip" onclick="fillPrompt('Generate an income statement (P&L) and balance sheet summary for B000001')">📄 Financial Statements (P&L / BS)</button>
+        <button type="button" class="prompt-chip" onclick="fillPrompt('Which month did B000001 make the most sales, and how much was it?')">🏆 Peak Sales Month Query</button>
+    </div>
     <div id="chat-messages" class="chat-messages"></div>
     <form id="chat-form" class="chat-form">
-        <input type="text" id="chat-input" placeholder="Ask a financial question..." autocomplete="off" required>
+        <input type="text" id="chat-input" placeholder="Ask a question or request a chart (e.g. 'Plot monthly sales for B000001')..." autocomplete="off" required>
         <button type="submit">Send</button>
     </form>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-
 <style>
-    .hint { color: #555; margin-bottom: 1rem; }
-    .chat-messages { max-height: 60vh; overflow-y: auto; margin-bottom: 1rem; padding: 0.5rem; background: #f9f9f9; border-radius: 6px; }
-    .message { margin: 0.5rem 0; padding: 0.75rem; border-radius: 6px; line-height: 1.5; }
-    .message.user { background: #005a87; color: white; margin-left: 2rem; }
-    .message.assistant { background: #eef6fb; color: #111; margin-right: 2rem; }
+    .hint { color: #444; margin-bottom: 0.75rem; font-size: 0.95rem; }
+    .prompt-chip { background: #eef6fb; border: 1px solid #c2e0f2; color: #005a87; padding: 0.4rem 0.8rem; border-radius: 20px; cursor: pointer; font-size: 0.85rem; font-weight: 600; transition: all 0.2s; }
+    .prompt-chip:hover { background: #005a87; color: white; }
+    .chat-messages { max-height: 65vh; overflow-y: auto; margin-bottom: 1rem; padding: 0.75rem; background: #f9f9f9; border-radius: 6px; }
+    .message { margin: 0.75rem 0; padding: 1rem; border-radius: 8px; line-height: 1.5; }
+    .message.user { background: #005a87; color: white; margin-left: 3rem; }
+    .message.assistant { background: white; border: 1px solid #e1e4e8; color: #111; margin-right: 3rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
     .message.assistant h3 { margin-top: 0; color: #005a87; }
-    .message.assistant p { margin: 0.25rem 0; }
-    .message.assistant ul { margin: 0.25rem 0; padding-left: 1.5rem; }
-    .message.assistant li { margin: 0.15rem 0; }
-    .message.assistant strong { color: #005a87; }
-    .message .meta { font-size: 0.75rem; opacity: 0.8; margin-top: 0.5rem; }
+    .message.assistant p { margin: 0.4rem 0; }
+    .message.assistant ul { margin: 0.4rem 0; padding-left: 1.5rem; }
+    .message.assistant table { width: 100%; border-collapse: collapse; margin: 0.5rem 0; }
+    .message.assistant th, .message.assistant td { border: 1px solid #ddd; padding: 0.4rem 0.6rem; text-align: left; }
+    .message.assistant th { background: #f0f4f8; }
+    .message .meta { font-size: 0.75rem; opacity: 0.75; margin-top: 0.75rem; border-top: 1px dashed #ddd; padding-top: 0.3rem; }
+    .chat-chart-container { background: #ffffff; border: 1px solid #dce4ec; border-radius: 8px; padding: 1rem; margin: 1rem 0; max-height: 320px; }
     .chat-form { display: flex; gap: 0.5rem; }
     .chat-form input { flex: 1; padding: 0.75rem; border: 1px solid #ccc; border-radius: 6px; }
-    .chat-form button { padding: 0.75rem 1.5rem; background: #005a87; color: white; border: none; border-radius: 6px; cursor: pointer; }
+    .chat-form button { padding: 0.75rem 1.5rem; background: #005a87; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
     .chat-form button:disabled { background: #999; }
-    .loading { opacity: 0.7; }
+    .loading { opacity: 0.85; background: #f0f4f8; display: flex; align-items: center; gap: 0.75rem; }
+    .spinner {
+        width: 20px;
+        height: 20px;
+        border: 3px solid rgba(0, 90, 135, 0.2);
+        border-top-color: #005a87;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+        display: inline-block;
+    }
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
 </style>
 
 <script>
@@ -40,6 +65,12 @@
     const form = document.getElementById('chat-form');
     const input = document.getElementById('chat-input');
     let history = [];
+    let chartCounter = 0;
+
+    function fillPrompt(text) {
+        input.value = text;
+        form.dispatchEvent(new Event('submit', { cancelable: true }));
+    }
 
     function renderMarkdown(text) {
         if (typeof marked !== 'undefined') {
@@ -48,10 +79,160 @@
         return text.replace(/\n/g, '<br>');
     }
 
-    function appendMessage(role, text, meta = '') {
+    function tryRenderChart(container, resultData, intent, userQuestion) {
+        const q = userQuestion.toLowerCase();
+        const wantsExpenseChart = q.includes('expense') || q.includes('cost') || q.includes('spending') || q.includes('pnl') || q.includes('profit and loss');
+        const wantsTrendChart = q.includes('trend') || q.includes('monthly') || q.includes('sale') || q.includes('revenue') || q.includes('line');
+
+        // Priority 1: If user asked for monthly / sales / revenue trend, render LINE CHART
+        if (resultData && (resultData.monthly_breakdown || resultData.monthly_breakdown_recent) && (wantsTrendChart || !wantsExpenseChart)) {
+            const list = resultData.monthly_breakdown || resultData.monthly_breakdown_recent;
+            if (Array.isArray(list) && list.length > 1) {
+                const chartBox = document.createElement('div');
+                chartBox.className = 'chat-chart-container';
+                const canvasId = 'chart-' + (++chartCounter);
+                chartBox.innerHTML = '<canvas id="' + canvasId + '" style="max-height: 280px; width: 100%;"></canvas>';
+                container.appendChild(chartBox);
+
+                const labels = list.map(item => item.month);
+                const revenues = list.map(item => item.revenue);
+
+                setTimeout(() => {
+                    const ctx = document.getElementById(canvasId).getContext('2d');
+                    new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: 'Monthly Sales Revenue (KES)',
+                                data: revenues,
+                                borderColor: '#005a87',
+                                backgroundColor: 'rgba(0, 90, 135, 0.12)',
+                                fill: true,
+                                tension: 0.3
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                title: { display: true, text: 'Monthly Revenue Trend' }
+                            },
+                            scales: {
+                                y: {
+                                    ticks: {
+                                        callback: function(v) { return 'KES ' + Number(v).toLocaleString(); }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }, 50);
+                return;
+            }
+        }
+
+        // Priority 2: Expense Category breakdown (Doughnut chart)
+        if (resultData && (resultData.summary && resultData.summary.top_expense_categories || resultData.pnl && resultData.pnl.expense_breakdown)) {
+            let catLabels = [];
+            let catValues = [];
+
+            if (resultData.pnl && resultData.pnl.expense_breakdown) {
+                for (const [k, v] of Object.entries(resultData.pnl.expense_breakdown)) {
+                    if (k !== 'Inventory') {
+                        catLabels.push(k);
+                        catValues.push(v);
+                    }
+                }
+            } else if (resultData.summary && Array.isArray(resultData.summary.top_expense_categories)) {
+                resultData.summary.top_expense_categories.forEach(item => {
+                    if (item.category && item.total) {
+                        catLabels.push(item.category);
+                        catValues.push(item.total);
+                    }
+                });
+            }
+
+            if (catLabels.length > 0 && (wantsExpenseChart || !wantsTrendChart)) {
+                const chartBox = document.createElement('div');
+                chartBox.className = 'chat-chart-container';
+                const canvasId = 'chart-' + (++chartCounter);
+                chartBox.innerHTML = '<canvas id="' + canvasId + '" style="max-height: 260px; width: 100%;"></canvas>';
+                container.appendChild(chartBox);
+
+                setTimeout(() => {
+                    const ctx = document.getElementById(canvasId).getContext('2d');
+                    new Chart(ctx, {
+                        type: 'doughnut',
+                        data: {
+                            labels: catLabels,
+                            datasets: [{
+                                data: catValues,
+                                backgroundColor: [
+                                    '#005a87', '#007a3d', '#e65100', '#6a1b9a', '#00838f',
+                                    '#c2185b', '#455a64', '#fbc02d', '#512da8', '#d32f2f'
+                                ]
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                title: { display: true, text: 'Operating Expense Distribution' }
+                            }
+                        }
+                    });
+                }, 50);
+                return;
+            }
+        }
+
+        // 3. Credit Risk drivers bar chart
+        if (resultData && resultData.explanation_drivers && Array.isArray(resultData.explanation_drivers) && resultData.explanation_drivers.length > 0) {
+            const chartBox = document.createElement('div');
+            chartBox.className = 'chat-chart-container';
+            const canvasId = 'chart-' + (++chartCounter);
+            chartBox.innerHTML = '<canvas id="' + canvasId + '" style="max-height: 260px; width: 100%;"></canvas>';
+            container.appendChild(chartBox);
+
+            const labels = resultData.explanation_drivers.map(d => d.label || d.feature);
+            const contributions = resultData.explanation_drivers.map(d => d.contribution);
+            const colors = contributions.map(c => c > 0 ? 'rgba(176, 0, 32, 0.7)' : 'rgba(0, 122, 61, 0.7)');
+
+            setTimeout(() => {
+                const ctx = document.getElementById(canvasId).getContext('2d');
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Log-Odds Contribution (Green = Lowers Risk, Red = Increases Risk)',
+                            data: contributions,
+                            backgroundColor: colors
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            title: { display: true, text: 'Credit Risk Model Feature Drivers' }
+                        }
+                    }
+                });
+            }, 50);
+        }
+    }
+
+    function appendMessage(role, text, meta = '', resultData = null, intent = '', userQuestion = '') {
         const div = document.createElement('div');
         div.className = 'message ' + role;
         div.innerHTML = role === 'assistant' ? renderMarkdown(text) : text.replace(/\n/g, '<br>');
+
+        if (role === 'assistant' && resultData) {
+            tryRenderChart(div, resultData, intent, userQuestion);
+        }
+
         if (meta) {
             const metaEl = document.createElement('div');
             metaEl.className = 'meta';
@@ -71,9 +252,18 @@
         input.value = '';
         const btn = form.querySelector('button');
         btn.disabled = true;
-        appendMessage('assistant', 'Thinking...', '');
-        const thinking = messagesEl.lastChild;
-        thinking.classList.add('loading');
+        
+        // Show animated spinner and loading message
+        const isGraphRequest = /chart|graph|plot|trend|visualize/i.test(question);
+        const loadingText = isGraphRequest 
+            ? '<span class="spinner"></span><span>Analyzing financial data and generating visual chart...</span>'
+            : '<span class="spinner"></span><span>Consulting AI specialist agents and calculating metrics...</span>';
+
+        const thinkingDiv = document.createElement('div');
+        thinkingDiv.className = 'message assistant loading';
+        thinkingDiv.innerHTML = loadingText;
+        messagesEl.appendChild(thinkingDiv);
+        messagesEl.scrollTop = messagesEl.scrollHeight;
 
         try {
             const res = await fetch('http://localhost:8000/api/v1/chat', {
@@ -82,12 +272,12 @@
                 body: JSON.stringify({ question, history })
             });
             const data = await res.json();
-            messagesEl.removeChild(thinking);
+            messagesEl.removeChild(thinkingDiv);
 
             if (res.ok) {
                 history.push({ role: 'user', content: question });
                 history.push({ role: 'assistant', content: data.response });
-                appendMessage('assistant', data.response, 'Intent: ' + data.intent);
+                appendMessage('assistant', data.response, 'Agent Intent: ' + data.intent, data.result, data.intent, question);
             } else {
                 appendMessage('assistant', 'Error: ' + (data.detail || 'Could not get a response.'), '');
             }

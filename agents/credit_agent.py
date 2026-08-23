@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 import logging
 from decimal import Decimal
 from pathlib import Path
@@ -12,12 +11,6 @@ from agents.state import AgentState
 from apps.agents.llm import get_llm
 from src.config.settings import get_settings
 from src.features.credit_features import get_business_features, load_data
-
-
-def _load_credit_risk_model():
-    from src.ml.credit_risk import load_credit_risk_model
-
-    return load_credit_risk_model()
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +26,7 @@ def _serialise(obj):
 
 
 def _heuristic_risk(features: dict[str, Any]) -> dict[str, Any]:
-    """Rule-based fallback when the trained model is not available."""
+    """Rule-based fallback when the trained scorecard is not available."""
     score = 0.0
     drivers = []
 
@@ -65,25 +58,22 @@ def _heuristic_risk(features: dict[str, Any]) -> dict[str, Any]:
         "risk_level": level,
         "model_version": "heuristic",
         "explanation_drivers": drivers,
-        "note": "No trained model found; using a heuristic risk score.",
+        "note": "No trained scorecard found; using a heuristic risk score.",
     }
 
 
 def _model_risk(features: dict[str, Any]) -> dict[str, Any]:
-    model = _load_credit_risk_model()
-    with open(Path("models/credit_risk_features.json")) as f:
-        feature_cols = json.load(f)
-    row = {c: float(features.get(c, 0.0)) for c in feature_cols}
-    X = [[row[c] for c in feature_cols]]
-    probability = float(model.predict_proba(X)[0][1])
-    score = int(round(probability * 100, 0))
-    level = "low" if score < 40 else "medium" if score < 70 else "high"
+    """Assess risk using the L2-regularised logistic-regression scorecard."""
+    from src.ml.scorecard import get_scorecard
+
+    card = get_scorecard()
+    assessment = card.assess(features, top_n=5)
     return {
-        "risk_score": score,
-        "probability_of_default": round(probability, 4),
-        "risk_level": level,
-        "model_version": "xgboost-v1",
-        "explanation_drivers": [],
+        "risk_score": assessment["risk_score"],
+        "probability_of_default": assessment["probability_of_default"],
+        "risk_level": assessment["risk_level"],
+        "model_version": f"scorecard-{assessment['model_version']}",
+        "explanation_drivers": assessment["reason_codes"],
     }
 
 
@@ -106,7 +96,7 @@ def credit_agent(state: AgentState) -> dict:
     try:
         risk = _serialise(_model_risk(features))
     except FileNotFoundError:
-        logger.warning("Credit-risk model not found; using heuristic fallback")
+        logger.warning("Credit-risk scorecard not found; using heuristic fallback")
         risk = _serialise(_heuristic_risk(features))
 
     system = (

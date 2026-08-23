@@ -63,6 +63,23 @@ class ChatResponse(BaseModel):
     result: dict
 
 
+class ReasonCode(BaseModel):
+    feature: str
+    label: str
+    value: float
+    contribution: float
+    direction: str
+
+
+class CreditRiskOut(BaseModel):
+    business_id: str
+    risk_score: float
+    probability_of_default: float
+    risk_level: str
+    model_version: str
+    explanation_drivers: list[ReasonCode]
+
+
 class HealthOut(BaseModel):
     status: str
     version: str = "0.1.0"

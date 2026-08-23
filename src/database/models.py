@@ -3,6 +3,8 @@ from __future__ import annotations
 from datetime import date, datetime
 
 from sqlalchemy import (
+    JSON,
+    Boolean,
     Date,
     DateTime,
     ForeignKey,
@@ -208,3 +210,99 @@ class CreditAssessment(Base):
         Index("ix_credit_assessments_business_id", "business_id"),
         Index("ix_credit_assessments_assessment_date", "assessment_date"),
     )
+
+
+class Alert(Base):
+    """Risk / anomaly alerts raised by the monitoring pipeline or agents."""
+
+    __tablename__ = "alerts"
+
+    alert_id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    business_id: Mapped[str] = mapped_column(ForeignKey("businesses.business_id"), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    alert_type: Mapped[str] = mapped_column(String(64), nullable=False)
+    severity: Mapped[str] = mapped_column(String(16), nullable=False)
+    title: Mapped[str] = mapped_column(String(255), nullable=False)
+    description: Mapped[str] = mapped_column(Text, nullable=False)
+    recommended_action: Mapped[str] = mapped_column(String(32), nullable=False)
+    evidence: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    source: Mapped[str] = mapped_column(String(64), nullable=False, default="monitoring")
+    acknowledged: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+
+    business: Mapped[Business] = relationship("Business")
+
+    __table_args__ = (
+        Index("ix_alerts_business_id", "business_id"),
+        Index("ix_alerts_severity", "severity"),
+        Index("ix_alerts_alert_type", "alert_type"),
+        Index("ix_alerts_created_at", "created_at"),
+        Index("ix_alerts_acknowledged", "acknowledged"),
+    )
+
+
+class AgentDecision(Base):
+    """Audit record of every specialist agent invocation and its outcome."""
+
+    __tablename__ = "agent_decisions"
+
+    decision_id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    trace_id: Mapped[str] = mapped_column(String(36), nullable=False)
+    business_id: Mapped[str | None] = mapped_column(String(16), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    agent_name: Mapped[str] = mapped_column(String(64), nullable=False)
+    intent: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    question: Mapped[str | None] = mapped_column(Text, nullable=True)
+    tools_used: Mapped[list | None] = mapped_column(JSON, nullable=True)
+    output_summary: Mapped[str | None] = mapped_column(Text, nullable=True)
+    result: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    duration_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    status: Mapped[str] = mapped_column(String(16), nullable=False, default="ok")
+    error: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    __table_args__ = (
+        Index("ix_agent_decisions_trace_id", "trace_id"),
+        Index("ix_agent_decisions_business_id", "business_id"),
+        Index("ix_agent_decisions_agent_name", "agent_name"),
+        Index("ix_agent_decisions_created_at", "created_at"),
+    )
+
+
+class ModelPrediction(Base):
+    """Every credit-risk model inference, with the reason codes that produced it."""
+
+    __tablename__ = "model_predictions"
+
+    prediction_id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    business_id: Mapped[str] = mapped_column(ForeignKey("businesses.business_id"), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    model_name: Mapped[str] = mapped_column(String(64), nullable=False)
+    model_version: Mapped[str] = mapped_column(String(64), nullable=False)
+    probability_of_default: Mapped[float] = mapped_column(Numeric(6, 5), nullable=False)
+    risk_score: Mapped[float] = mapped_column(Numeric(5, 2), nullable=False)
+    risk_level: Mapped[str] = mapped_column(String(16), nullable=False)
+    features: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    reason_codes: Mapped[list | None] = mapped_column(JSON, nullable=True)
+
+    business: Mapped[Business] = relationship("Business")
+
+    __table_args__ = (
+        Index("ix_model_predictions_business_id", "business_id"),
+        Index("ix_model_predictions_created_at", "created_at"),
+        Index("ix_model_predictions_risk_level", "risk_level"),
+    )
+
+
+class MonitoringRun(Base):
+    """Record of each proactive monitoring sweep."""
+
+    __tablename__ = "monitoring_runs"
+
+    run_id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    started_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    finished_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    businesses_scanned: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    alerts_created: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    status: Mapped[str] = mapped_column(String(16), nullable=False, default="running")
+    detail: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+
+    __table_args__ = (Index("ix_monitoring_runs_started_at", "started_at"),)

@@ -11,6 +11,7 @@ from agents.financial_agent import financial_agent
 from agents.forecasting_agent import forecasting_agent
 from agents.invoice_agent import invoice_agent
 from agents.rag_agent import rag_agent
+from agents.report_agent import report_agent
 from agents.state import AgentState
 from agents.transaction_agent import transaction_agent
 from apps.agents.llm import get_llm
@@ -83,27 +84,70 @@ def _extract_dates(text: str) -> tuple[str | None, str | None]:
     return None, None
 
 
+def _classify_intent_heuristic(question: str) -> str | None:
+    q = question.lower()
+    if any(k in q for k in ["policy", "guideline", "definition", "document", "regulation", "rule"]):
+        return "DOCUMENT_QUERY"
+    if any(k in q for k in ["p&l", "profit and loss", "balance sheet", "income statement", "powerpoint", "presentation", "financial model"]):
+        return "REPORT_GENERATION"
+    if any(k in q for k in ["sales trend", "revenue trend", "monthly sales", "monthly revenue", "plot sales", "plot revenue", "revenue graph", "sales graph", "sales chart"]):
+        return "FINANCIAL_ANALYSIS"
+    if any(k in q for k in ["invoice", "invoices", "bill", "billing", "receivable"]):
+        return "INVOICE"
+    if any(k in q for k in ["credit risk", "default", "credit score", "creditworthiness", "scorecard"]):
+        return "CREDIT_RISK"
+    if any(k in q for k in ["forecast", "predict revenue", "future cash flow", "next month"]):
+        return "FORECAST"
+    if any(k in q for k in ["anomaly", "anomalies", "suspicious", "unusual", "fraud"]):
+        return "ANOMALY_DETECTION"
+    if any(k in q for k in ["transaction", "transactions", "mpesa", "m-pesa", "deposit", "withdrawal"]):
+        return "TRANSACTION_ANALYSIS"
+    return None
+
+
 def classify(state: AgentState) -> dict:
+    last_message = state["messages"][-1]
+    question = last_message.content
+
+    # Fast-path / fallback for document queries and keyword intents
+    heuristic_intent = _classify_intent_heuristic(question)
+
     system = (
         "You are the supervisor for a Kenyan SME financial intelligence platform. "
         "Analyse the user's question and extract the intent, business ID, and date range. "
+        "If the question is about general financial definitions, policies, or lending rules, intent is DOCUMENT_QUERY. "
         "Use YYYY-MM-DD for dates. If a date is missing but a relative term is used "
         "(e.g. 'this month'), use the closest reasonable range. "
-        "If you cannot identify the required information, set intent to CLARIFICATION and ask. "
         f"Allowed intents: {', '.join(INTENTS)}"
     )
     llm = get_llm().with_structured_output(_build_classifier())
-    last_message = state["messages"][-1]
-    out = llm.invoke([SystemMessage(content=system), last_message])
+    try:
+        out = llm.invoke([SystemMessage(content=system), last_message])
+        intent = out.intent
+    except Exception:
+        intent = heuristic_intent or "GENERAL"
+        out = ClassifierOutput(intent=intent, business_id=None, start_date=None, end_date=None, clarification="")
 
-    question = last_message.content
+    if heuristic_intent:
+        intent = heuristic_intent
+
     conversation = " ".join(m.content for m in state["messages"])
-    business_id = out.business_id or _extract_business_id(question) or _extract_business_id(conversation)
+    business_id = getattr(out, "business_id", None) or _extract_business_id(question) or _extract_business_id(conversation)
     start_date, end_date = _extract_dates(question)
     if not start_date:
-        start_date = out.start_date or _extract_dates(conversation)[0]
+        start_date = getattr(out, "start_date", None) or _extract_dates(conversation)[0]
     if not end_date:
-        end_date = out.end_date or _extract_dates(conversation)[1]
+        end_date = getattr(out, "end_date", None) or _extract_dates(conversation)[1]
+
+    # If the question is a policy / document query, general talk, or doesn't need a business ID
+    if intent in {"DOCUMENT_QUERY", "GENERAL"}:
+        return {
+            "current_intent": intent,
+            "business_id": business_id,
+            "start_date": start_date,
+            "end_date": end_date,
+            "final_response": "",
+        }
 
     # Default to the full 2023 range if the specialist still needs dates
     if business_id and not start_date:
@@ -118,11 +162,11 @@ def classify(state: AgentState) -> dict:
         }
 
     return {
-        "current_intent": out.intent if out.intent != "CLARIFICATION" else "FINANCIAL_ANALYSIS",
+        "current_intent": intent if intent != "CLARIFICATION" else "FINANCIAL_ANALYSIS",
         "business_id": business_id,
         "start_date": start_date,
         "end_date": end_date,
-        "final_response": out.clarification if out.intent == "CLARIFICATION" else "",
+        "final_response": getattr(out, "clarification", "") if intent == "CLARIFICATION" else "",
     }
 
 
@@ -142,6 +186,8 @@ def route(state: AgentState) -> str:
         return "forecast"
     if intent == "DOCUMENT_QUERY":
         return "rag"
+    if intent == "REPORT_GENERATION":
+        return "report"
     if intent == "CLARIFICATION":
         return "general"
     return "general"
@@ -179,6 +225,7 @@ def build_graph():
     builder.add_node("forecast", forecasting_agent)
     builder.add_node("invoice", invoice_agent)
     builder.add_node("rag", rag_agent)
+    builder.add_node("report", report_agent)
     builder.add_node("general", general_node)
 
     builder.add_edge(START, "classify")
@@ -193,6 +240,7 @@ def build_graph():
             "credit": "credit",
             "forecast": "forecast",
             "rag": "rag",
+            "report": "report",
             "general": "general",
         },
     )
@@ -203,6 +251,7 @@ def build_graph():
     builder.add_edge("credit", END)
     builder.add_edge("forecast", END)
     builder.add_edge("rag", END)
+    builder.add_edge("report", END)
     builder.add_edge("general", END)
     return builder.compile()
 

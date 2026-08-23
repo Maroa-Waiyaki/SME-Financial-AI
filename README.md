@@ -10,37 +10,48 @@ Kenyan SMEs often lack accessible, data-driven financial insight. Business owner
 
 ## Architecture
 
-```
-Django Dashboard
-       ↓
-FastAPI API
-       ↓
-LangGraph Supervisor
-       ↓
-┌─────────────────────────────────────────────────┐
-│  Financial Agent                                │
-│  Transaction Agent                              │
-│  Credit Risk Agent                              │
-│  Forecasting Agent                              │
-│  Anomaly Detection Agent                        │
-│  Document / RAG Agent                           │
-└─────────────────────────────────────────────────┘
-       ↓
-Tool Layer (PostgreSQL, ML models, Weaviate, Forecasting)
-       ↓
-Response with evidence
+```mermaid
+flowchart TB
+    subgraph UI [Frontend]
+        D[Django Dashboard]
+    end
+
+    D -->|HTTP| F[FastAPI API]
+    F -->|JSON| S[LangGraph Supervisor]
+    S -->|routes to| FA[Financial Agent]
+    S -->|routes to| TA[Transaction Agent]
+    S -->|routes to| CA[Credit Risk Agent]
+    S -->|routes to| AA[Anomaly Agent]
+    S -->|routes to| FO[Forecasting Agent]
+    S -->|routes to| RA[RAG / Policy Agent]
+    S -->|routes to| IA[Invoice Agent]
+
+    CA -->|inference| SC[Credit Scorecard<br/>(logistic regression)]
+    FA -->|queries| PG[(PostgreSQL)]
+    TA -->|queries| PG
+    AA -->|statistical| DET[Anomaly Detection]
+    FO -->|forecasts| BASE[Baseline Forecaster]
+    RA -->|near_text| WV[(Weaviate)]
+
+    CEL[Celery Workers] -->|proactive monitoring| SC
+    CEL -->|writes| PG
+
+    PG -->|serves data| F
+    SC -->|writes predictions/alerts| PG
+
+    F -->|agent result| D
 ```
 
 ## Technology Stack
 
 - **Backend:** Python 3.12+, FastAPI, Pydantic, SQLAlchemy, PostgreSQL, Redis, Celery
 - **Frontend:** Django 5
-- **Agentic AI:** LangGraph, LangChain, OpenAI-compatible LLMs, structured tool calling
-- **Machine Learning:** scikit-learn, XGBoost, LightGBM, CatBoost, Prophet, SHAP, MLflow
+- **Agentic AI:** LangGraph, LangChain, OpenAI-compatible / Ollama LLMs, structured tool calling
+- **Machine Learning:** NumPy/Pandas scorecard (core), optional scikit-learn, XGBoost, SHAP, MLflow
 - **Vector DB:** Weaviate
 - **MLOps:** MLflow with optional DagsHub remote
 - **Infra:** Docker, Docker Compose, GitHub Actions
-- **Testing:** pytest, ruff, mypy
+- **Testing:** pytest, ruff
 
 ## Project Structure
 
@@ -107,13 +118,13 @@ Implemented endpoints:
 - `GET  /api/v1/health`
 - `GET  /api/v1/businesses/{business_id}`
 - `GET  /api/v1/businesses/{business_id}/financial-summary`
+- `GET  /api/v1/businesses/{business_id}/credit-risk`
 - `POST /api/v1/chat`
 
 Additional endpoints planned:
 
 - `GET  /api/v1/businesses/{business_id}/forecast`
 - `GET  /api/v1/businesses/{business_id}/anomalies`
-- `GET  /api/v1/businesses/{business_id}/credit-risk`
 - `POST /api/v1/reports`
 
 ## Agentic AI
@@ -129,9 +140,37 @@ Implemented agents:
 - **Anomaly Detection Agent** — z-score, off-hours, and frequency anomalies
 - **RAG Agent** — Weaviate-backed document Q&A with citations
 
+## Local LLM (Ollama)
+
+The platform can use any OpenAI-compatible endpoint, including a local [Ollama](https://ollama.com) server:
+
+```bash
+# 1. Install Ollama and pull a model
+ollama pull llama3.2
+
+# 2. Set your .env (host mode)
+OPENAI_API_KEY=ollama
+LLM_PROVIDER=ollama
+LLM_MODEL=llama3.2
+LLM_BASE_URL=http://localhost:11434/v1
+
+# 3. When running inside Docker Desktop, use the host gateway
+LLM_BASE_URL=http://host.docker.internal:11434/v1
+```
+
 ## MLOps
 
 MLflow tracks credit-risk, anomaly, and forecasting experiments, metrics, and artifacts. The best credit-risk model is promoted through `candidate → staging → production` aliases and loaded at runtime.
+
+### Credit-risk scorecard
+
+The default credit-risk model is an L2-regularised logistic-regression scorecard implemented in NumPy. It runs in the core runtime image with no extra ML dependencies and produces exact, additive reason codes for every prediction.
+
+Train it after generating synthetic data:
+
+```bash
+python scripts/train_scorecard.py
+```
 
 ## CI/CD
 

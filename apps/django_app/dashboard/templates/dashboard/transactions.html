@@ -3,8 +3,156 @@
 {% block title %}Transactions - Kenya SME FI{% endblock %}
 
 {% block content %}
+<h1>Transactions & Anomalies</h1>
+
 <div class="card">
-    <h2>Transactions</h2>
-    <p>Recent transaction feed, anomaly flags, and category breakdown will appear here.</p>
+    <form method="get" action="{% url 'transactions' %}">
+        <label for="business_id">Business ID</label>
+        <select name="business_id" id="business_id" onchange="this.form.submit()">
+            {% for b in businesses %}
+            <option value="{{ b.business_id }}" {% if b.business_id == business_id %}selected{% endif %}>{{ b.business_id }} - {{ b.business_name }}</option>
+            {% endfor %}
+        </select>
+    </form>
+    {% if error %}
+        <p class="error">{{ error }}</p>
+    {% endif %}
 </div>
+
+{% if profile %}
+<div class="card">
+    <h2>{{ profile.business_name }} ({{ profile.business_id }})</h2>
+    <p>{{ profile.sector }} | {{ profile.county }} | {{ profile.business_size }}</p>
+</div>
+
+<div class="card">
+    <h2>Transaction Summary ({{ period_start }} to {{ period_end }})</h2>
+    <div class="grid">
+        <div class="metric"><h3>Total Transactions</h3><p>{{ summary.transaction_count }}</p></div>
+        <div class="metric"><h3>Inflow</h3><p>KES {{ summary.inflow_fmt }}</p></div>
+        <div class="metric"><h3>Outflow</h3><p>KES {{ summary.outflow_fmt }}</p></div>
+        <div class="metric"><h3>Net Flow</h3><p>KES {{ summary.net_flow_fmt }}</p></div>
+        <div class="metric"><h3>Anomalies Flagged</h3><p>{{ anomaly_count }}</p></div>
+    </div>
+
+    {% if summary.count_by_type %}
+    <h3>By Transaction Type</h3>
+    <ul>
+        {% for t, c in summary.count_by_type.items %}
+        <li>{{ t }}: {{ c }} transactions</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+
+    {% if summary.count_by_channel %}
+    <h3>By Channel</h3>
+    <ul>
+        {% for c, n in summary.count_by_channel.items %}
+        <li>{{ c }}: {{ n }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+</div>
+
+<div class="card">
+    <h2>Recent Transactions</h2>
+    {% if transactions %}
+    <table>
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Type</th>
+                <th>Channel</th>
+                <th>Category</th>
+                <th>Counterparty</th>
+                <th>Amount (KES)</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for t in transactions %}
+            <tr {% if t.is_anomaly %}style="background:#fff0f0"{% endif %}>
+                <td>{{ t.timestamp }}</td>
+                <td>{{ t.transaction_type }}</td>
+                <td>{{ t.channel }}</td>
+                <td>{{ t.category }}</td>
+                <td>{{ t.counterparty }}</td>
+                <td>{{ t.amount_fmt }}</td>
+                <td>
+                    {% if t.is_anomaly %}
+                    <span class="error">{{ t.anomaly_severity }}</span>
+                    {% else %}
+                    {{ t.status }}
+                    {% endif %}
+                </td>
+            </tr>
+            {% if t.is_anomaly %}
+            <tr style="background:#fff0f0">
+                <td colspan="7"><strong>Anomaly:</strong> {{ t.anomaly_reason }}</td>
+            </tr>
+            {% endif %}
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+        <p>No transactions found for this business.</p>
+    {% endif %}
+</div>
+
+<div class="card">
+    <h2>Category Breakdown</h2>
+    {% if category_data %}
+    <table>
+        <thead>
+            <tr>
+                <th>Category</th>
+                <th>Count</th>
+                <th>Total (KES)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for c in category_data %}
+            <tr>
+                <td>{{ c.category }}</td>
+                <td>{{ c.count }}</td>
+                <td>KES {{ c.total_fmt }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+        <p>No category data available.</p>
+    {% endif %}
+</div>
+
+<div class="card">
+    <h2>Anomaly Flags</h2>
+    {% if anomalies %}
+    <table>
+        <thead>
+            <tr>
+                <th>Transaction ID</th>
+                <th>Reason</th>
+                <th>Severity</th>
+                <th>Amount (KES)</th>
+                <th>Z-Score</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for a in anomalies %}
+            <tr>
+                <td>{{ a.transaction_id }}</td>
+                <td>{{ a.reason }}</td>
+                <td class="error">{{ a.severity }}</td>
+                <td>{{ a.amount_fmt }}</td>
+                <td>{{ a.zscore }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+        <p>No anomalies detected for this period.</p>
+    {% endif %}
+</div>
+{% endif %}
 {% endblock %}

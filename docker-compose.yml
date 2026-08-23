@@ -44,6 +44,15 @@ services:
       timeout: 10s
       retries: 5
 
+  ollama:
+    image: ollama/ollama:latest
+    container_name: sme_ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    restart: unless-stopped
+
   fastapi:
     build:
       context: .
@@ -58,6 +67,7 @@ services:
       CELERY_BROKER_URL: redis://redis:6379/1
       CELERY_RESULT_BACKEND: redis://redis:6379/2
       WEAVIATE_URL: http://weaviate:8080
+      LLM_BASE_URL: http://ollama:11434/v1
     ports:
       - "8000:8000"
     depends_on:
@@ -118,8 +128,32 @@ services:
     volumes:
       - .:/app
 
+  celery-beat:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sme_celery_beat
+    command: celery -A apps.django_app.celery_app beat -l info
+    env_file:
+      - .env
+    environment:
+      DB_NAME: sme_financial_intelligence
+      DB_USER: sme_user
+      DB_PASSWORD: sme_pass
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DATABASE_URL: postgresql://sme_user:sme_pass@postgres:5432/sme_financial_intelligence
+      CELERY_BROKER_URL: redis://redis:6379/1
+      CELERY_RESULT_BACKEND: redis://redis:6379/2
+    depends_on:
+      - redis
+      - postgres
+    volumes:
+      - .:/app
+
 volumes:
   postgres_data:
   weaviate_data:
   redis_data:
   mlruns:
+  ollama_data:

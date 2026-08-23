@@ -158,7 +158,95 @@ def get_top_expenses(session: Session, business_id: str, start_date: str | date,
     return [dict(row._mapping) for row in session.execute(stmt)]
 
 
-def get_top_revenue_customers(session: Session, business_id: str, start_date: str | date, end_date: str | date, n: int = 5):
+def get_annual_sales_summary(
+    session: Session,
+    business_id: str,
+    start_date: str | date = "2021-01-01",
+    end_date: str | date = "2023-12-31",
+) -> list[dict[str, Any]]:
+    """Return yearly aggregated revenue and expense metrics for multi-year comparisons."""
+    year_col = func.date_trunc("year", Sale.date).label("year")
+    stmt = (
+        select(
+            year_col,
+            func.coalesce(func.sum(Sale.total_amount), Decimal("0")).label("revenue"),
+            func.count(Sale.sale_id).label("sales_count"),
+        )
+        .where(
+            and_(
+                Sale.business_id == business_id,
+                Sale.date >= _coerce_date(start_date),
+                Sale.date <= _coerce_date(end_date),
+            )
+        )
+        .group_by(year_col)
+        .order_by(year_col)
+    )
+    rows = session.execute(stmt).all()
+    results = []
+    for r in rows:
+        y_str = r[0].strftime("%Y") if isinstance(r[0], (date, datetime)) else str(r[0])
+        results.append({
+            "year": y_str,
+            "revenue": Decimal(str(r[1])),
+            "sales_count": int(r[2]),
+        })
+    return results
+
+
+def get_monthly_sales_trend(
+    session: Session,
+    business_id: str,
+    start_date: str | date = "2021-01-01",
+    end_date: str | date = "2023-12-31",
+) -> list[dict[str, Any]]:
+    """Return monthly aggregated sales revenue and count, ordered chronologically."""
+    month_col = func.date_trunc("month", Sale.date).label("month")
+    stmt = (
+        select(
+            month_col,
+            func.coalesce(func.sum(Sale.total_amount), Decimal("0")).label("revenue"),
+            func.count(Sale.sale_id).label("sales_count"),
+        )
+        .where(
+            and_(
+                Sale.business_id == business_id,
+                Sale.date >= _coerce_date(start_date),
+                Sale.date <= _coerce_date(end_date),
+            )
+        )
+        .group_by(month_col)
+        .order_by(month_col)
+    )
+    rows = session.execute(stmt).all()
+    results = []
+    for r in rows:
+        m_str = r[0].strftime("%Y-%m") if isinstance(r[0], (date, datetime)) else str(r[0])
+        results.append({
+            "month": m_str,
+            "revenue": Decimal(str(r[1])),
+            "sales_count": int(r[2]),
+        })
+    return results
+
+
+def get_best_and_worst_months(
+    session: Session,
+    business_id: str,
+    start_date: str | date = "2021-01-01",
+    end_date: str | date = "2023-12-31",
+) -> dict[str, Any]:
+    """Find the highest and lowest revenue months for a business."""
+    trend = get_monthly_sales_trend(session, business_id, start_date, end_date)
+    if not trend:
+        return {"best_month": None, "worst_month": None, "monthly_breakdown": []}
+
+    sorted_by_rev = sorted(trend, key=lambda x: x["revenue"], reverse=True)
+    return {
+        "best_month": sorted_by_rev[0],
+        "worst_month": sorted_by_rev[-1],
+        "all_months": trend,
+    }
     stmt = (
         select(Sale.customer_id, func.sum(Sale.total_amount).label("total"))
         .where(

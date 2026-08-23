@@ -8,7 +8,13 @@ from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 from agents.state import AgentState
 from apps.agents.llm import get_llm
 from src.database.engine import get_db
-from tools.financial import compare_periods, get_financial_summary
+from tools.financial import (
+    compare_periods,
+    get_annual_sales_summary,
+    get_best_and_worst_months,
+    get_financial_summary,
+    get_monthly_sales_trend,
+)
 
 
 def _previous_period(start: str, end: str) -> tuple[str, str]:
@@ -50,26 +56,33 @@ def financial_agent(state: AgentState) -> dict:
         summary = _serialise(get_financial_summary(db, business_id, start, end))
         prev_start, prev_end = _previous_period(start, end)
         comparison = _serialise(compare_periods(db, business_id, start, end, prev_start, prev_end))
+        monthly_stats = _serialise(get_best_and_worst_months(db, business_id, start, end))
+        annual_stats = _serialise(get_annual_sales_summary(db, business_id, start, end))
 
-    data = {"summary": summary, "comparison": comparison}
+    # Return full monthly breakdown for charts and time-series questions
+    months_list = monthly_stats.get("all_months", [])
+
+    data = {
+        "summary": summary,
+        "best_month": monthly_stats.get("best_month"),
+        "worst_month": monthly_stats.get("worst_month"),
+        "annual_summary": annual_stats,
+        "monthly_breakdown": months_list,
+    }
     period = f"{start} to {end}"
     system = (
         "You are a professional Kenyan SME financial analyst. Use only the provided data. "
-        "Respond in clear, plain English using normal ASCII punctuation (standard hyphens and spaces). "
-        "Use KES with two decimal places. Clearly label the period. "
-        "Keep facts and recommendations in separate sections. If no recommendation is warranted, omit it."
+        "Respond in clear, plain English using normal ASCII punctuation. "
+        "Use KES with two decimal places. Answer specific questions about best/worst months, monthly trends, or financial performance accurately."
     )
     prompt = (
         f"User question: {question}\n"
         f"Period: {period}\n\n"
-        f"Data: {data}\n\n"
-        "Format:\n"
-        f"**Facts ({period})**\n"
-        "- Revenue: KES ...\n"
-        "- Expenses: KES ...\n"
-        "- Profit: KES ... (profit margin ...%)\n"
-        "- Other relevant metrics\n\n"
-        "**Recommendation** (one short, practical suggestion for a Kenyan SME, only if relevant)"
+        f"Financial Data:\n{data}\n\n"
+        "Instructions:\n"
+        "1. Directly and accurately answer the user's specific question (e.g. identify which month made the most or least sales, trend changes, or figures).\n"
+        "2. Provide key supporting facts/numbers (KES amounts, dates, or breakdowns).\n"
+        "3. Provide one brief, actionable recommendation if helpful."
     )
 
     llm = get_llm()

@@ -3,8 +3,183 @@
 {% block title %}Analytics - Kenya SME FI{% endblock %}
 
 {% block content %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<h1>SME Multi-Year Analytics & Trends</h1>
+
 <div class="card">
-    <h2>Analytics</h2>
-    <p>Revenue, expense, profit and credit-risk charts will be rendered here using the API.</p>
+    <form method="get" action="{% url 'analytics' %}">
+        <label for="business_id">Business ID</label>
+        <select name="business_id" id="business_id" onchange="this.form.submit()">
+            {% for b in businesses %}
+            <option value="{{ b.business_id }}" {% if b.business_id == business_id %}selected{% endif %}>{{ b.business_id }} - {{ b.business_name }}</option>
+            {% endfor %}
+        </select>
+    </form>
+    {% if error %}
+        <p class="error">{{ error }}</p>
+    {% endif %}
+</div>
+
+{% if profile %}
+<div class="card">
+    <h2>{{ profile.business_name }} ({{ profile.business_id }})</h2>
+    <p>{{ profile.sector }} | {{ profile.county }} | {{ profile.business_size }} | {{ profile.registration_status }}</p>
+    <p>Employees: {{ profile.number_of_employees }} | Age: {{ profile.business_age_years }} years | Monthly baseline: KES {{ profile.monthly_revenue_estimate_fmt }}</p>
+</div>
+
+<div class="card">
+    <h2>3-Year Performance Summary ({{ period_start }} to {{ period_end }})</h2>
+    <div class="grid">
+        <div class="metric"><h3>Total Revenue</h3><p>KES {{ summary.revenue_fmt }}</p></div>
+        <div class="metric"><h3>Total Expenses</h3><p>KES {{ summary.expenses_fmt }}</p></div>
+        <div class="metric"><h3>Total Net Profit</h3><p>KES {{ summary.profit_fmt }}</p></div>
+        <div class="metric"><h3>Average Profit Margin</h3><p>{{ summary.profit_margin_percent }}%</p></div>
+        <div class="metric"><h3>Cumulative Cash Flow</h3><p>KES {{ summary.net_cash_flow_fmt }}</p></div>
+        <div class="metric"><h3>Outstanding Receivables</h3><p>KES {{ summary.outstanding_receivables_fmt }}</p></div>
+    </div>
+</div>
+
+<div class="card">
+    <h2>3-Year Monthly Revenue vs Expenses Trend</h2>
+    <div style="height: 320px; width: 100%;">
+        <canvas id="trendChart"></canvas>
+    </div>
+</div>
+
+<div class="card">
+    <h2>Expense Breakdown by Category (3-Year Total)</h2>
+    <div style="max-height: 280px; width: 100%; display: flex; justify-content: center;">
+        <canvas id="expenseChart" style="max-height: 280px;"></canvas>
+    </div>
+</div>
+
+<div class="card">
+    <h2>Monthly Financial Records</h2>
+    {% if monthly_data %}
+    <table>
+        <thead>
+            <tr>
+                <th>Month</th>
+                <th>Revenue (KES)</th>
+                <th>Expenses (KES)</th>
+                <th>Profit (KES)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for m in monthly_data %}
+            <tr>
+                <td>{{ m.month }}</td>
+                <td>KES {{ m.revenue_fmt }}</td>
+                <td>KES {{ m.expenses_fmt }}</td>
+                <td>KES {{ m.profit_fmt }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+        <p>No monthly data available for this period.</p>
+    {% endif %}
+</div>
+
+{{ monthly_data|json_script:"monthly-data" }}
+{{ expense_categories|json_script:"expense-categories" }}
+
+<script>
+    const monthlyData = JSON.parse(document.getElementById('monthly-data').textContent);
+    const expenseData = JSON.parse(document.getElementById('expense-categories').textContent);
+
+    const months = monthlyData.map(d => d.month);
+    const revenues = monthlyData.map(d => d.revenue);
+    const expenses = monthlyData.map(d => d.expenses);
+    const profits = monthlyData.map(d => d.profit);
+
+    const ctxTrend = document.getElementById('trendChart').getContext('2d');
+    new Chart(ctxTrend, {
+        type: 'line',
+        data: {
+            labels: months,
+            datasets: [
+                {
+                    label: 'Revenue (KES)',
+                    data: revenues,
+                    borderColor: '#005a87',
+                    backgroundColor: 'rgba(0, 90, 135, 0.1)',
+                    fill: true,
+                    tension: 0.3
+                },
+                {
+                    label: 'Expenses (KES)',
+                    data: expenses,
+                    borderColor: '#b00020',
+                    backgroundColor: 'rgba(176, 0, 32, 0.05)',
+                    fill: true,
+                    tension: 0.3
+                },
+                {
+                    label: 'Profit (KES)',
+                    data: profits,
+                    borderColor: '#007a3d',
+                    borderDash: [5, 5],
+                    fill: false,
+                    tension: 0.3
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    ticks: {
+                        callback: function(value) { return 'KES ' + value.toLocaleString(); }
+                    }
+                }
+            }
+        }
+    });
+
+    const expCategories = expenseData.map(c => c.category);
+    const expTotals = expenseData.map(c => c.total);
+
+    const ctxExp = document.getElementById('expenseChart').getContext('2d');
+    new Chart(ctxExp, {
+        type: 'doughnut',
+        data: {
+            labels: expCategories,
+            datasets: [{
+                data: expTotals,
+                backgroundColor: [
+                    '#005a87', '#007a3d', '#e65100', '#6a1b9a', '#00838f',
+                    '#c2185b', '#455a64', '#fbc02d', '#512da8', '#d32f2f'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+</script>
+{% endif %}
+
+<div class="card">
+    <h2>Portfolio Overview (100 Kenyan SMEs)</h2>
+    <p>Total businesses: {{ portfolio.total_businesses }}</p>
+    <div class="grid">
+        <div class="metric"><h3>By Business Size</h3>
+            {% for item in portfolio.by_size %}
+            <p>{{ item.label }}: {{ item.count }}</p>
+            {% endfor %}
+        </div>
+        {% if portfolio.has_risk_data %}
+        <div class="metric"><h3>By Risk Level</h3>
+            {% for item in portfolio.by_risk %}
+            <p>{{ item.label }}: {{ item.count }}</p>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
 </div>
 {% endblock %}
+
